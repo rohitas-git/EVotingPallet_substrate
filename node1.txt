@@ -1,0 +1,16 @@
+Secret phrase:       alone raven urban bone shallow style key hospital slight zebra sister essay
+  Network ID:        substrate
+  Secret seed:       0x79ab46e028d85da6d0d801b5ba711ff06247af1601356bf240e310c996a422a0
+  Public key (hex):  0x66f061ac79bc0aa4d79afa20ee40f5bd08ab22cee490e42389d32461a0705221
+  Account ID:        0x66f061ac79bc0aa4d79afa20ee40f5bd08ab22cee490e42389d32461a0705221
+  Public key (SS58): 5EPg9dcn7vTvuAAVdGZhpL4ndVej8kpk1FMrVzYqsNmsHBQr
+  SS58 Address:      5EPg9dcn7vTvuAAVdGZhpL4ndVej8kpk1FMrVzYqsNmsHBQr
+
+Gran:
+Secret phrase:       alone raven urban bone shallow style key hospital slight zebra sister essay
+  Network ID:        substrate
+  Secret seed:       0x79ab46e028d85da6d0d801b5ba711ff06247af1601356bf240e310c996a422a0
+  Public key (hex):  0x4ee347137bcba0f5580524cfcf5e6dedc621051f0b906d7b765dbf1f7fe02986
+  Account ID:        0x4ee347137bcba0f5580524cfcf5e6dedc621051f0b906d7b765dbf1f7fe02986
+  Public key (SS58): 5Dr97CevRzz9wCcmRibYfPGchbzPy5wRd7aLxHdtyM4r1N8b
+  SS58 Address:      5Dr97CevRzz9wCcmRibYfPGchbzPy5wRd7aLxHdtyM4r1N8b

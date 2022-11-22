@@ -1,0 +1,16 @@
+Secret phrase:       notable say upset clarify bird finish tomato point sleep sunny choice cook
+  Network ID:        substrate
+  Secret seed:       0xb8adb7bfb8bca13a341e1c13e9eee15361a6372f7f20b774c99fdbe0c764a1b8
+  Public key (hex):  0x343cbd310afcce0f776c17ca2acd2b6637c7611a37926b414ea5074149b42439
+  Account ID:        0x343cbd310afcce0f776c17ca2acd2b6637c7611a37926b414ea5074149b42439
+  Public key (SS58): 5DFCPbePKT9QADDmqukFpqnu1ussmnoiwbxnh9E6EZkjGrFV
+  SS58 Address:      5DFCPbePKT9QADDmqukFpqnu1ussmnoiwbxnh9E6EZkjGrFV
+
+Gran:
+Secret phrase:       notable say upset clarify bird finish tomato point sleep sunny choice cook
+  Network ID:        substrate
+  Secret seed:       0xb8adb7bfb8bca13a341e1c13e9eee15361a6372f7f20b774c99fdbe0c764a1b8
+  Public key (hex):  0x944778c868697696156853b0e5e92bbec87baa33bd884e64582c79a45f949e10
+  Account ID:        0x944778c868697696156853b0e5e92bbec87baa33bd884e64582c79a45f949e10
+  Public key (SS58): 5FR8B9Aj2kCp4t6REep6LCaMKsQ5n5LPV7EfmVnpwqh5mJmb
+  SS58 Address:      5FR8B9Aj2kCp4t6REep6LCaMKsQ5n5LPV7EfmVnpwqh5mJmb
