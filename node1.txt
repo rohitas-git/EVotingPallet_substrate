@@ -14,3 +14,6 @@ Secret phrase:       alone raven urban bone shallow style key hospital slight ze
   Account ID:        0x4ee347137bcba0f5580524cfcf5e6dedc621051f0b906d7b765dbf1f7fe02986
   Public key (SS58): 5Dr97CevRzz9wCcmRibYfPGchbzPy5wRd7aLxHdtyM4r1N8b
   SS58 Address:      5Dr97CevRzz9wCcmRibYfPGchbzPy5wRd7aLxHdtyM4r1N8b
+
+  Local ID
+  12D3KooWAXfTtanesh1Dj6eXZYd7RmrPmxiLXMKijyeAhF5fqR3a  
