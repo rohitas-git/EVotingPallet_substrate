@@ -1,5 +1,5 @@
 {
-  "name": "Local Testnet",
+  "name": "Rohitas Testnet",
   "id": "local_testnet",
   "chainType": "Local",
   "bootNodes": [],
@@ -14,18 +14,18 @@
       },
       "aura": {
         "authorities": [
-          "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
-          "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty"
+          "5EPg9dcn7vTvuAAVdGZhpL4ndVej8kpk1FMrVzYqsNmsHBQr",
+          "5DFCPbePKT9QADDmqukFpqnu1ussmnoiwbxnh9E6EZkjGrFV"
         ]
       },
       "grandpa": {
         "authorities": [
           [
-            "5FA9nQDVg267DEd8m1ZypXLBnvN7SFxYwV7ndqSYGiN9TTpu",
+            "5Dr97CevRzz9wCcmRibYfPGchbzPy5wRd7aLxHdtyM4r1N8b",
             1
           ],
           [
-            "5GoNkf6WdbxCFnPdAnYYQyCjAKPJgLNxXwPjwTh6DGg6gN3E",
+            "5FR8B9Aj2kCp4t6REep6LCaMKsQ5n5LPV7EfmVnpwqh5mJmb",
             1
           ]
         ]
