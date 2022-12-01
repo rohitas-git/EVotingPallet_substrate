@@ -157,10 +157,6 @@ parameter_types! {
 	pub const MaxWellKnownNodes: u32 = 8;
 	pub const MaxPeerIdLength: u32 = 128;
 }
-parameter_types! {
-	pub MaximumSchedulerWeight: Weight = 10_000_000;
-	pub const MaxScheduledPerBlock: u32 = 50;
-   }   
 
 // Configure FRAME pallets to include in runtime.
 
@@ -302,18 +298,21 @@ impl pallet_node_authorization::Config for Runtime {
 	type WeightInfo = ();
 }
 
+parameter_types! {
+	pub MaximumSchedulerWeight: Weight = Perbill::from_percent(80) *
+		RuntimeBlockWeights::get().max_block;
+	pub const MaxScheduledPerBlock: u32 = 50;
+}
+
 impl pallet_scheduler::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type RuntimeOrigin = RuntimeOrigin;
+	type Event = Event;
+	type Origin = Origin;
 	type PalletsOrigin = OriginCaller;
-	type RuntimeCall = RuntimeCall;
+	type Call = Call;
 	type MaximumWeight = MaximumSchedulerWeight;
-	type ScheduleOrigin = frame_system::EnsureRoot<AccountId>;
+	type ScheduleOrigin = EnsureRoot<AccountId>;
 	type MaxScheduledPerBlock = MaxScheduledPerBlock;
-	type WeightInfo = ();
-	type OriginPrivilegeCmp = EqualPrivilegeOnly;
-	type PreimageProvider = ();
-	type NoPreimagePostponement = ();
+	type WeightInfo = pallet_scheduler::weights::SubstrateWeight<Runtime>;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
