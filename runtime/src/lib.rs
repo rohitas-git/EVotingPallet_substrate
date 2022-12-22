@@ -29,7 +29,7 @@ use sp_version::RuntimeVersion;
 pub use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{
-		ConstU128, ConstU32, ConstU64, ConstU8, KeyOwnerProofSystem, Randomness, StorageInfo, NothingF
+		ConstU128, ConstU32, ConstU64, ConstU8, KeyOwnerProofSystem, Randomness, StorageInfo, Nothing
 	},
 	weights::{
 		constants::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight, WEIGHT_PER_SECOND},
@@ -45,9 +45,9 @@ use pallet_transaction_payment::{ConstFeeMultiplier, CurrencyAdapter, Multiplier
 
  /* After this block */
 // Time is measured by number of blocks.
-pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
-pub const HOURS: BlockNumber = MINUTES * 60;
-pub const DAYS: BlockNumber = HOURS * 24;
+// pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
+// pub const HOURS: BlockNumber = MINUTES * 60;
+// pub const DAYS: BlockNumber = HOURS * 24;
 
 /* Add this block */
 // Contracts price units.
@@ -89,7 +89,7 @@ parameter_types! {
 	type AddressGenerator = pallet_contracts::DefaultAddressGenerator;
 	//type ContractAccessWeight = DefaultContractAccessWeight<BlockWeights>;
 	type MaxCodeLen = ConstU32<{ 256 * 1024 }>;
-	type RelaxedMaxCodeLen = ConstU32<{ 512 * 1024 }>;
+	//type RelaxedMaxCodeLen = ConstU32<{ 512 * 1024 }>;
 	type MaxStorageKeyLen = ConstU32<{ 512 * 1024 }>;
   }
   /*** End added block ***/
