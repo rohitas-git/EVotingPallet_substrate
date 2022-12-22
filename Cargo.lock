@@ -3716,6 +3716,7 @@ dependencies = [
  "pallet-aura",
  "pallet-balances",
  "pallet-contracts",
+ "pallet-contracts-primitives",
  "pallet-grandpa",
  "pallet-nicks",
  "pallet-randomness-collective-flip",
@@ -3934,6 +3935,7 @@ version = "4.0.0-dev"
 source = "git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.32#5ea6d95309aaccfa399c5f72e5a14a4b7c6c4ca1"
 dependencies = [
  "bitflags",
+ "frame-benchmarking",
  "frame-support",
  "frame-system",
  "impl-trait-for-tuples",
@@ -3941,7 +3943,9 @@ dependencies = [
  "pallet-contracts-primitives",
  "pallet-contracts-proc-macro",
  "parity-scale-codec",
+ "rand 0.8.5",
  "scale-info",
+ "serde",
  "smallvec",
  "sp-api",
  "sp-core",
