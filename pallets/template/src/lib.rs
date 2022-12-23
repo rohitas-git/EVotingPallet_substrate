@@ -79,6 +79,7 @@ pub mod pallet {
 		/// Event emitted when a claim is revoked by the owner.
 		ClaimRevoked { who: T::AccountId, claim: T::Hash },
 	}
+
 	#[pallet::error]
 	pub enum Error<T> {
 		/// The claim already exists.
@@ -89,7 +90,9 @@ pub mod pallet {
 		NotClaimOwner,
 	}
 
-	#[pallet::storage] // <-- Step 5. code block will replace this.
+	#[pallet::storage]
+	pub(super) type Claims<T: Config> = StorageMap<_, Blake2_128Concat, T::Hash, (T::AccountId, T::BlockNumber)>;
+
 	#[pallet::call]    // <-- Step 6. code block will replace this.
 	}
 
