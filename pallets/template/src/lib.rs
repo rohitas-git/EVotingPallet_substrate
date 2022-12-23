@@ -5,6 +5,21 @@
 // conditional attribute to configure compiler to run code if std feature is disable, i.e no_std
 #![cfg_attr(not(feature = "std"), no_std)]
 
+/* -------------------------------------------------------------------------- */
+/*                   Custom Pallet: Proof-of-existence                        */
+/* -------------------------------------------------------------------------- */ 
+/*
+Proof-of-existence is an approach to validating the authenticity and ownership of a digital object by storing information about the object on the blockchain. 
+Because the blockchain associates a timestamp and account with the object, 
+the blockchain record can be used to "prove" that a particular object existed at a specific date and time. 
+It can also verify who the owner of a record was at that date and time.
+*/
+/* --------------------------- Design of Pallet : --------------------------- */
+/*  The proof-of-existence application exposes the following callable functions:
+ 	create_claim() allows a user to claim the existence of a file by uploading a hash.
+  	revoke_claim() allows the current owner of a claim to revoke ownership.
+*/
+/* ----------------------------------- End ---------------------------------- */
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
