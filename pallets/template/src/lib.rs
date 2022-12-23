@@ -21,6 +21,32 @@ It can also verify who the owner of a record was at that date and time.
 */
 /* ----------------------------------- End ---------------------------------- */
 
+/* -------------------------------------------------------------------------- */
+/*                          Skeleton of Custom Pallet                         */
+/* -------------------------------------------------------------------------- */
+
+/*
+	pub use pallet::*;
+
+	#[frame_support::pallet]
+	pub mod pallet {
+	use frame_support::pallet_prelude::*;
+	use frame_system::pallet_prelude::*;
+
+	#[pallet::pallet]
+	#[pallet::generate_store(pub(super) trait Store)]
+	pub struct Pallet<T>(_);
+
+	#[pallet::config]  // <-- Step 2. code block will replace this.
+	#[pallet::event]   // <-- Step 3. code block will replace this.
+	#[pallet::error]   // <-- Step 4. code block will replace this.
+	#[pallet::storage] // <-- Step 5. code block will replace this.
+	#[pallet::call]    // <-- Step 6. code block will replace this.
+}
+*/ 
+/* ----------------------------------- End ---------------------------------- */
+
+
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
 
@@ -30,7 +56,6 @@ pub use pallet::*;
 pub mod pallet {
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
-
 	#[pallet::pallet]
 	#[pallet::generate_store(pub(super) trait Store)] 
 	//To generate a Store trait associating all storages
@@ -44,8 +69,26 @@ pub mod pallet {
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 	}
 
-	#[pallet::event]   // <-- Step 3. code block will replace this.
-	#[pallet::error]   // <-- Step 4. code block will replace this.
+	// Pallets use events to inform users when important changes are made.
+	// Event documentation should end with an array that provides descriptive names for parameters.
+	#[pallet::event]
+	#[pallet::generate_deposit(pub(super) fn deposit_event)]
+	pub enum Event<T: Config> {
+		/// Event emitted when a claim has been created.
+		ClaimCreated { who: T::AccountId, claim: T::Hash },
+		/// Event emitted when a claim is revoked by the owner.
+		ClaimRevoked { who: T::AccountId, claim: T::Hash },
+	}
+	#[pallet::error]
+	pub enum Error<T> {
+		/// The claim already exists.
+		AlreadyClaimed,
+		/// The claim does not exist, so it cannot be revoked.
+		NoSuchClaim,
+		/// The claim is owned by another account, so caller can't revoke it.
+		NotClaimOwner,
+	}
+
 	#[pallet::storage] // <-- Step 5. code block will replace this.
 	#[pallet::call]    // <-- Step 6. code block will replace this.
 	}
