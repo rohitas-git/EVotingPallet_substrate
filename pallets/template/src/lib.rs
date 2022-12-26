@@ -46,7 +46,8 @@ pub mod pallet {
 
     // Create a key-value map, where each claim points to the owner and the block number when the claim was made
     #[pallet::storage]
-    pub(super) type Claims<T: Config> = StorageMap<_, Blake2_128Concat, T::Hash, (T::AccountId, T::BlockNumber)>;
+    pub(super) type Claims<T: Config> = 
+        StorageMap<_, Blake2_128Concat, T::Hash, (T::AccountId, T::BlockNumber)>;
 
     // Dispatchable functions allow users to interact with the pallet and invoke state changes.
     // These functions materialize as "extrinsics", which are often compared to transactions.
@@ -75,22 +76,22 @@ pub mod pallet {
 
         #[pallet::weight(0)]
         pub fn revoke_claim(origin: OriginFor<T>, claim: T::Hash) -> DispatchResult {
-        // Check that the extrinsic was signed and get the signer.
-        let sender = ensure_signed(origin)?;
+            // Check that the extrinsic was signed and get the signer.
+            let sender = ensure_signed(origin)?;
 
-        // Get owner of the claim, if none return an error.
-        let (owner, _) = Claims::<T>::get(&claim).ok_or(Error::<T>::NoSuchClaim)?;
+            // Get owner of the claim, if none return an error.
+            let (owner, _) = Claims::<T>::get(&claim).ok_or(Error::<T>::NoSuchClaim)?;
 
-        // Verify that sender of the current call is the claim owner.
-        ensure!(sender == owner, Error::<T>::NotClaimOwner);
+            // Verify that sender of the current call is the claim owner.
+            ensure!(sender == owner, Error::<T>::NotClaimOwner);
 
-        // Remove claim from storage.
-        Claims::<T>::remove(&claim);
+            // Remove claim from storage.
+            Claims::<T>::remove(&claim);
 
-        // Emit an event that the claim was erased.
-        Self::deposit_event(Event::ClaimRevoked { who: sender, claim });
-        Ok(())
-    }
+            // Emit an event that the claim was erased.
+            Self::deposit_event(Event::ClaimRevoked { who: sender, claim });
+            Ok(())
+        }
     }
 
 }
