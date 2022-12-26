@@ -1,100 +1,96 @@
-//All of the pallets used in a runtime must be set to compile with the no_std features.
-//Because they will be compiled to WASM and WASM doesn't work with std's memory management operations
-//WASM needs to be defined its own memory management operations
-
-// conditional attribute to configure compiler to run code if std feature is disable, i.e no_std
 #![cfg_attr(not(feature = "std"), no_std)]
-
-/* -------------------------------------------------------------------------- */
-/*                   Custom Pallet: Proof-of-existence                        */
-/* -------------------------------------------------------------------------- */ 
-/*
-Proof-of-existence is an approach to validating the authenticity and ownership of a digital object by storing information about the object on the blockchain. 
-Because the blockchain associates a timestamp and account with the object, 
-the blockchain record can be used to "prove" that a particular object existed at a specific date and time. 
-It can also verify who the owner of a record was at that date and time.
-*/
-/* --------------------------- Design of Pallet : --------------------------- */
-/*  The proof-of-existence application exposes the following callable functions:
- 	create_claim() allows a user to claim the existence of a file by uploading a hash.
-  	revoke_claim() allows the current owner of a claim to revoke ownership.
-*/
-/* ----------------------------------- End ---------------------------------- */
-
-/* -------------------------------------------------------------------------- */
-/*                          Skeleton of Custom Pallet                         */
-/* -------------------------------------------------------------------------- */
-
-/*
-	pub use pallet::*;
-
-	#[frame_support::pallet]
-	pub mod pallet {
-	use frame_support::pallet_prelude::*;
-	use frame_system::pallet_prelude::*;
-
-	#[pallet::pallet]
-	#[pallet::generate_store(pub(super) trait Store)]
-	pub struct Pallet<T>(_);
-
-	#[pallet::config]  // <-- Step 2. code block will replace this.
-	#[pallet::event]   // <-- Step 3. code block will replace this.
-	#[pallet::error]   // <-- Step 4. code block will replace this.
-	#[pallet::storage] // <-- Step 5. code block will replace this.
-	#[pallet::call]    // <-- Step 6. code block will replace this.
-}
-*/ 
-/* ----------------------------------- End ---------------------------------- */
-
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
 
-// The pallet attribute macro defines a pallet that can be used with construct_runtime!. It must be attached to a module named pallet as follows:
-//The pallet macro will parse any items within your pallet module that are annotated with #[pallet::*] attributes.
+    // 0. Think of Design of pallet 
+    // 1. Configure the pallet to emit event
+    // 2. Define those event (The defined events indicate that call to pallet has been completed successfully)
+    // 3. Implement Errors for pallet in case event fails 
+    // 4. Implement a storage mechanism to add claim to the blockchain
+    // 5. Implement logic for the call 
+
+
 #[frame_support::pallet]
 pub mod pallet {
-	use frame_support::pallet_prelude::*;
-	use frame_system::pallet_prelude::*;
-	#[pallet::pallet]
-	#[pallet::generate_store(pub(super) trait Store)] 
-	//To generate a Store trait associating all storages
-	//More precisely, the Store trait contains an associated type for each storage. It is implemented for Pallet allowing access to the storage from pallet struct.
-	pub struct Pallet<T>(_);
+    use frame_support::pallet_prelude::*;
+    use frame_system::pallet_prelude::*;
 
-	/// Configure the pallet by specifying the parameters and types on which it depends.
-	#[pallet::config]
-	pub trait Config: frame_system::Config {
-		/// Because this pallet emits events, it depends on the runtime's definition of an event.
-		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
-	}
+    #[pallet::pallet]
+    #[pallet::generate_store(pub(super) trait Store)]
+    pub struct Pallet<T>(_);
 
-	// Pallets use events to inform users when important changes are made.
-	// Event documentation should end with an array that provides descriptive names for parameters.
-	#[pallet::event]
-	#[pallet::generate_deposit(pub(super) fn deposit_event)]
-	pub enum Event<T: Config> {
-		/// Event emitted when a claim has been created.
-		ClaimCreated { who: T::AccountId, claim: T::Hash },
-		/// Event emitted when a claim is revoked by the owner.
-		ClaimRevoked { who: T::AccountId, claim: T::Hash },
-	}
+    #[pallet::config]
+    pub trait Config: frame_system::Config {
+        type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
+    }
 
-	#[pallet::error]
-	pub enum Error<T> {
-		/// The claim already exists.
-		AlreadyClaimed,
-		/// The claim does not exist, so it cannot be revoked.
-		NoSuchClaim,
-		/// The claim is owned by another account, so caller can't revoke it.
-		NotClaimOwner,
-	}
+    #[pallet::event] 
+    #[pallet::generate_deposit(pub(super) fn deposit_event)]
+    pub enum Event<T: Config> {
+        /// Event emitted when a claim has been created.
+        ClaimCreated { who: T::AccountId, claim: T::Hash },
+        /// Event emitted when a claim is revoked by the owner.
+        ClaimRevoked { who: T::AccountId, claim: T::Hash },
+    }
 
-	#[pallet::storage]
-	pub(super) type Claims<T: Config> = StorageMap<_, Blake2_128Concat, T::Hash, (T::AccountId, T::BlockNumber)>;
+    #[pallet::error]
+    pub enum Error<T> {
+      /// The claim already exists.
+      AlreadyClaimed,
+      /// The claim does not exist, so it cannot be revoked.
+      NoSuchClaim,
+      /// The claim is owned by another account, so caller can't revoke it.
+      NotClaimOwner,
+    }
 
-	#[pallet::call]    // <-- Step 6. code block will replace this.
-	}
+    // Create a key-value map, where each claim points to the owner and the block number when the claim was made
+    #[pallet::storage]
+    pub(super) type Claims<T: Config> = StorageMap<_, Blake2_128Concat, T::Hash, (T::AccountId, T::BlockNumber)>;
 
+    // Dispatchable functions allow users to interact with the pallet and invoke state changes.
+    // These functions materialize as "extrinsics", which are often compared to transactions.
+    // Dispatchable functions must be annotated with a weight and must return a DispatchResult.
+    #[pallet::call]
+    impl<T: Config> Pallet<T> {
+        #[pallet::weight(0)]
+        pub fn create_claim(origin: OriginFor<T>, claim: T::Hash) -> DispatchResult {
+            // Check that the extrinsic was signed and get the signer.
+            let sender = ensure_signed(origin)?;
 
+            // Verify that the specified claim has not already been stored.
+            ensure!(!Claims::<T>::contains_key(&claim), Error::<T>::AlreadyClaimed);
 
+            // Get the block number from the FRAME System pallet.
+            let current_block = <frame_system::Pallet<T>>::block_number();
+
+            // Store the claim with the sender and block number.
+            Claims::<T>::insert(&claim, (&sender, current_block));
+
+            // Emit an event that the claim was created.
+            Self::deposit_event(Event::ClaimCreated { who: sender, claim });
+
+            Ok(())
+        }
+
+        #[pallet::weight(0)]
+        pub fn revoke_claim(origin: OriginFor<T>, claim: T::Hash) -> DispatchResult {
+        // Check that the extrinsic was signed and get the signer.
+        let sender = ensure_signed(origin)?;
+
+        // Get owner of the claim, if none return an error.
+        let (owner, _) = Claims::<T>::get(&claim).ok_or(Error::<T>::NoSuchClaim)?;
+
+        // Verify that sender of the current call is the claim owner.
+        ensure!(sender == owner, Error::<T>::NotClaimOwner);
+
+        // Remove claim from storage.
+        Claims::<T>::remove(&claim);
+
+        // Emit an event that the claim was erased.
+        Self::deposit_event(Event::ClaimRevoked { who: sender, claim });
+        Ok(())
+    }
+    }
+
+}
