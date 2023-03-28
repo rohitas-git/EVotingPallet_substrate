@@ -15,8 +15,8 @@
     // that are aggregated by the construct_runtime! macro to build the runtime.
 
     /* ---------------------------- Development mode ---------------------------- */
-    // #[pallet(dev_mode)] or #[frame_support::pallet(dev_mode)] 
-    // to enable development mode for the pallet you're working on.
+    // *#[pallet(dev_mode)] or #[frame_support::pallet(dev_mode)] 
+    // *to enable development mode for the pallet you're working on.
 
     // Development mode loosens some of the restrictions and requirements placed on production pallets to make it easier
     //  to iterate on your code during development and testing cycles. 
