@@ -12,15 +12,6 @@
 // 
 // create_claim() allows a user to claim the existence of a file by uploading a hash.
 // revoke_claim() allows the current owner of a claim to revoke ownership.
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
 
 
 #![cfg_attr(not(feature = "std"), no_std)]

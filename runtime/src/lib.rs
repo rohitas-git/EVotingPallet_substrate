@@ -274,7 +274,8 @@ impl pallet_template::Config for Runtime {
 // *for E-Voting
 impl evoting::Config for Runtime{
 	type RuntimeEvent = RuntimeEvent;
-	type Voter= Voter;
+	type VoterOrigin= RuntimeOrigin ; //? Correct?
+	type CandidateOrigin= RuntimeOrigin; 
 }
 
 // // *for Nicks pallet
