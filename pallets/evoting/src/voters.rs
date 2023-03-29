@@ -1,3 +1,3 @@
 pub mod voter;
 
-pub use voter::Voter;
+pub use voter::{Voter,VoterInfo};

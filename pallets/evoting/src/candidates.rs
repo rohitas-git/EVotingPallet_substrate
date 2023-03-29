@@ -1,4 +1,4 @@
 pub mod candidate;
 // or mod candidate
 
-pub use candidate::Candidate;
+pub use candidate::{CandidateInfo,Candidate};

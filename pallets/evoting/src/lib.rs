@@ -17,12 +17,14 @@ pub struct ElectionConfig<BlockNumber>{
 
 #[frame_support::pallet(dev_mode)]
 pub mod pallet {
-	use candidates::Candidate;
-use frame_support::pallet_prelude::*;
+	use candidate::{CandidateInfo,Candidate};
+
+	// use frame_benchmarking::runtime_decl_for_benchmark::ValueQuery;
+	use frame_support::pallet_prelude::*;
 	use frame_support::traits::VoteTally;
 	use frame_system::pallet_prelude::*;
 
-	use crate::voters::Voter;
+	use crate::voters::{Voter, VoterInfo};
 	use crate::candidates::Candidate;
 
 	#[pallet::pallet]
@@ -34,15 +36,18 @@ use frame_support::pallet_prelude::*;
 
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 		type CandidateOrigin: EnsureOrigin<Self::RuntimeOrigin>;
-		type VoterOrigin: EnsureOrigin<Self::RuntimeOrigin>; //?  EnsureOrigin...
+		type VoterOrigin: EnsureOrigin<Self::RuntimeOrigin>; //?  EnsureOrigin... how to do it
 		
 	}
 
 	// The pallet's runtime storage items.
 	#[pallet::storage]
-	#[pallet::getter(fn something)]
-	pub type CandidatesList<T> = StorageValue<_, Vec<Candidate::<T>> >;
-	pub type VotersList<T> = StorageValue<_, Vec<Voter::<T>> >; //?
+	#[pallet::getter(fn candidate_list)]
+	pub type CandidatesList<T:Config> = StorageValue<"", Vec<CandidateInfo::<T>>, ValueQuery >;
+
+	#[pallet::storage]
+	#[pallet::getter(fn voter_list)]
+	pub type VotersList<T:Config> = StorageValue<"voter", Vec<VoterInfo::<T>>, ValueQuery >; //?
 
 
 
@@ -54,17 +59,17 @@ use frame_support::pallet_prelude::*;
 		
 		SuccessfulVote { who: T::AccountId },
 
-		CandidateRegistered {who: Candidate::<T>},
-		VoterRegistered {who: Voter::<T>},
+		CandidateRegistered {who: CandidateInfo::<T>},
+		VoterRegistered {who: VoterInfo::<T>},
 
-		GiveVote {from: Voter::<T>, whom: Candidate::<T>},
-		FetchVotes {whose: Candidate::<T>},
-		CandidateInfo {whose:Candidate::<T>},
+		GiveVote {from: VoterInfo::<T>, whom: CandidateInfo::<T>},
+		FetchVotes {whose: CandidateInfo::<T>},
+		CandidateInfo {whose:CandidateInfo::<T>},
 
 		ElectionStarted,
 		ElectionClosed,
 
-		Winner{who:Candidate::<T>, vote_count: u32}
+		Winner{who:CandidateInfo::<T>, vote_count: u32}
 
 	}
 
@@ -98,8 +103,9 @@ use frame_support::pallet_prelude::*;
 		pub fn register_candidate(origin: OriginFor<T>, name:String)-> DispatchResult{
 			let sender = ensure_signed(origin)?;
 
+			ensure!(sender.registered(), Error::<T>::AlreadyRegistered);
+
 			let candidate = Candidate::new(name, sender);
- 
 			
 			Self::deposit_event(Event::<T>::CandidateRegistered { who: candidate });
 			Ok(())
@@ -109,6 +115,8 @@ use frame_support::pallet_prelude::*;
 		pub fn register_voter(origin: OriginFor<T>)-> DispatchResult{
 			let sender = ensure_signed(origin)?;
 
+			ensure!(sender.registered(), Error::<T>::AlreadyRegistered);
+
 			let voter = Voter::new(sender); //? store this voter
 
 			Self::deposit_event(Event::<T>::VoterRegistered { who: voter });
@@ -116,26 +124,29 @@ use frame_support::pallet_prelude::*;
 		}
 
 		#[pallet::call_index(2)]
-		pub fn give_vote(origin: OriginFor<T>, by:Voter::<T>, whose: Candidate::<T>)-> DispatchResult{
+		pub fn give_vote(origin: OriginFor<T>, by: VoterInfo::<T>, whose: CandidateInfo::<T>)-> DispatchResult{
 			let voter = ensure_signed(origin)?;
-			
-			whose.votes_count+=1;
-			
+
+			ensure!(by.check_voted(), Error::<T>::AlreadyVoted);
+
+			whose.increase_vote();
 
 			Self::deposit_event(Event::<T>::GiveVote { from:by, whom: whose });
 			Ok(())
 		}
 
 		#[pallet::call_index(3)]
-		pub fn vote_count(origin: OriginFor<T>, whose: Candidate::<T>)-> DispatchResult{
+		pub fn vote_count(origin: OriginFor<T>, whose: CandidateInfo::<T>)-> DispatchResult{
 			let candidate = ensure_signed(origin)?;
+			
+			ensure!();
 
 			Self::deposit_event(Event::<T>::FetchVotes { whose: whose });
 			Ok(())
 		}
 
 		#[pallet::call_index(4)]
-		pub fn candidate_info(origin: OriginFor<T>, whose: Candidate::<T>)-> DispatchResult{
+		pub fn candidate_info(origin: OriginFor<T>, whose: CandidateInfo::<T>)-> DispatchResult{
 			let candidate = ensure_signed(origin)?;
 
 			Self::deposit_event(Event::<T>::CandidateInfo { whose: whose });
@@ -144,13 +155,13 @@ use frame_support::pallet_prelude::*;
 
 		#[pallet::call_index(5)]
 		pub fn start_election(origin: OriginFor<T>)-> DispatchResult{
-			let admin = ensure_root(origin)?;
+			ensure_root(origin)?;
 
 			Self::deposit_event(Event::<T>::ElectionStarted);
 			Ok(())
 		}
 
-		#[pallet::call_index(5)]
+		#[pallet::call_index(6)]
 		pub fn close_election(origin: OriginFor<T>)-> DispatchResult{
 			let admin = ensure_root(origin)?;
 
