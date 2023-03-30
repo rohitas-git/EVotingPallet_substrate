@@ -1,6 +1,8 @@
 use frame_system::Config;
+use codec::{Encode,Decode};
 
-#[derive(Debug)]
+// #[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, Default, Debug)]
+#[derive(Debug,Decode,Encode, Clone, PartialEq, Default)]
 pub struct CandidateInfo<T:Config>{
     name: String,
     votes_count: u64,
@@ -12,7 +14,7 @@ pub trait Candidate<T:Config>{
 
     fn vote_count(&self);
 
-    fn increase_vote(&self);
+    fn increase_vote(&mut self);
 }
 
 impl<T:Config> CandidateInfo<T>{
@@ -29,5 +31,5 @@ impl<T:Config> Candidate<T> for CandidateInfo<T>{
         println!("Number of Votes for {}: {}", self.name, self.votes_count);
     }
 
-    fn increase_vote(&self){self.votes_count+=1;}
+    fn increase_vote(&mut self){self.votes_count+=1;}
 }

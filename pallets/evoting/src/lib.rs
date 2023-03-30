@@ -6,6 +6,7 @@ mod candidates;
 // mod admins;
 
 pub use crate::pallet::*;
+use scale_info::TypeInfo;
 
 
 pub struct ElectionConfig<BlockNumber>{
@@ -17,15 +18,15 @@ pub struct ElectionConfig<BlockNumber>{
 
 #[frame_support::pallet(dev_mode)]
 pub mod pallet {
-	use candidate::{CandidateInfo,Candidate};
 
 	// use frame_benchmarking::runtime_decl_for_benchmark::ValueQuery;
 	use frame_support::pallet_prelude::*;
-	use frame_support::traits::VoteTally;
+	// #[warn(unused_imports)]
+	// use frame_support::traits::VoteTally; 
 	use frame_system::pallet_prelude::*;
 
 	use crate::voters::{Voter, VoterInfo};
-	use crate::candidates::Candidate;
+	use crate::candidates::{CandidateInfo,Candidate};
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
@@ -37,17 +38,19 @@ pub mod pallet {
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 		type CandidateOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 		type VoterOrigin: EnsureOrigin<Self::RuntimeOrigin>; //?  EnsureOrigin... how to do it
+
+		//? Do write types alias for VoterInfo and CandidateInfo
 		
 	}
 
 	// The pallet's runtime storage items.
 	#[pallet::storage]
-	#[pallet::getter(fn candidate_list)]
-	pub type CandidatesList<T:Config> = StorageValue<"", Vec<CandidateInfo::<T>>, ValueQuery >;
+	#[pallet::getter(fn candidates_list)]
+	pub type CandidatesList<T:Config> = StorageMap<_, Blake2_128Concat, u64, CandidateInfo::<T>, ValueQuery >;
 
 	#[pallet::storage]
-	#[pallet::getter(fn voter_list)]
-	pub type VotersList<T:Config> = StorageValue<"voter", Vec<VoterInfo::<T>>, ValueQuery >; //?
+	#[pallet::getter(fn voters_list)]
+	pub type VotersList<T:Config> = StorageMap<_, Blake2_128Concat, u64, VoterInfo::<T>, ValueQuery >; //?
 
 
 
@@ -63,7 +66,7 @@ pub mod pallet {
 		VoterRegistered {who: VoterInfo::<T>},
 
 		GiveVote {from: VoterInfo::<T>, whom: CandidateInfo::<T>},
-		FetchVotes {whose: CandidateInfo::<T>},
+		FetchVotes {whose: CandidateInfo::<T>, count: u32},
 		CandidateInfo {whose:CandidateInfo::<T>},
 
 		ElectionStarted,
@@ -103,11 +106,12 @@ pub mod pallet {
 		pub fn register_candidate(origin: OriginFor<T>, name:String)-> DispatchResult{
 			let sender = ensure_signed(origin)?;
 
-			ensure!(sender.registered(), Error::<T>::AlreadyRegistered);
+			ensure!(sender.registered(), Error::<T>::AlreadyRegistered); //? Registered is a fn on VoterList and CandidateList
 
 			let candidate = Candidate::new(name, sender);
+			// CandidateList::<T>::put(candidate);
 			
-			Self::deposit_event(Event::<T>::CandidateRegistered { who: candidate });
+			Self::deposit_event(Event::<T>::CandidateRegistered { who: &candidate });
 			Ok(())
 		}
 
@@ -119,7 +123,7 @@ pub mod pallet {
 
 			let voter = Voter::new(sender); //? store this voter
 
-			Self::deposit_event(Event::<T>::VoterRegistered { who: voter });
+			Self::deposit_event(Event::<T>::VoterRegistered { who: &voter });
 			Ok(())
 		}
 
@@ -131,7 +135,7 @@ pub mod pallet {
 
 			whose.increase_vote();
 
-			Self::deposit_event(Event::<T>::GiveVote { from:by, whom: whose });
+			Self::deposit_event(Event::<T>::GiveVote { from: &by, whom: &whose });
 			Ok(())
 		}
 
@@ -141,7 +145,7 @@ pub mod pallet {
 			
 			ensure!();
 
-			Self::deposit_event(Event::<T>::FetchVotes { whose: whose });
+			Self::deposit_event(Event::<T>::FetchVotes { whose: &whose });
 			Ok(())
 		}
 
@@ -149,7 +153,7 @@ pub mod pallet {
 		pub fn candidate_info(origin: OriginFor<T>, whose: CandidateInfo::<T>)-> DispatchResult{
 			let candidate = ensure_signed(origin)?;
 
-			Self::deposit_event(Event::<T>::CandidateInfo { whose: whose });
+			Self::deposit_event(Event::<T>::CandidateInfo { whose: &whose });
 			Ok(())
 		}
 

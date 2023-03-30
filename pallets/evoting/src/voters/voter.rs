@@ -2,7 +2,7 @@ use frame_system::Config;
 
 use crate::candidates::CandidateInfo;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct VoterInfo<T:Config>{
     voted: bool,
     who: T::AccountId,
@@ -32,7 +32,7 @@ impl<T:Config> Voter<T> for VoterInfo<T>{
 
      fn check_voted(&self)->bool {self.voted}
 
-     fn info(&self){ println!("Vote status:{},\nVoted for {:?}", self.check_voted(), self.voted_for()? ); }
+     fn info(&self){ println!("Vote status:{},\nVoted for {:?}", self.check_voted(), self.voted_for() ); }
 
      fn voted_for(&self)->Option<CandidateInfo::<T>>{ if self.check_voted() {self.voted_for()} else {Option::None}}
 }
