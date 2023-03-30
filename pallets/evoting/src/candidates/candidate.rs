@@ -1,8 +1,9 @@
 use frame_system::Config;
 use codec::{Encode,Decode};
+use scale_info::TypeInfo;
 
 // #[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, Default, Debug)]
-#[derive(Debug,Decode,Encode, Clone, PartialEq, Default)]
+#[derive(Debug,Decode, Encode, Clone, PartialEq, Default, TypeInfo)]
 pub struct CandidateInfo<T:Config>{
     name: String,
     votes_count: u64,

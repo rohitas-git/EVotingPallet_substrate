@@ -46,7 +46,7 @@ pub use sp_runtime::BuildStorage;
 pub use sp_runtime::{Perbill, Permill};
 
 // Shorten and alias structs in E-Voting Pallet
-pub use pallet_evoting::{Voter,Candidate,Admin};
+// pub use pallet_evoting::{Voter,Candidate,Admin};
 
 /// Import the template pallet.
 pub use pallet_template;
@@ -271,12 +271,12 @@ impl pallet_template::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 }
 
-// *for E-Voting
-impl evoting::Config for Runtime{
-	type RuntimeEvent = RuntimeEvent;
-	type VoterOrigin= RuntimeOrigin ; //? Correct?
-	type CandidateOrigin= RuntimeOrigin; 
-}
+// // *for E-Voting
+// impl evoting::Config for Runtime{
+// 	type RuntimeEvent = RuntimeEvent;
+// 	type VoterOrigin= RuntimeOrigin ; //? Correct?
+// 	type CandidateOrigin= RuntimeOrigin; 
+// }
 
 // // *for Nicks pallet
 // impl pallet_nicks::Config for Runtime {
@@ -323,7 +323,7 @@ construct_runtime!(
 		Sudo: pallet_sudo,
 		// Include the custom logic from the pallet-template in the runtime.
 		TemplateModule: pallet_template,
-		EVoting: pallet_evoting::{Pallet, Call, Storage, Event<T>},
+		// EVoting: pallet_evoting::{Pallet, Call, Storage, Event<T>},
 		// Nicks: pallet_nicks,
 	}
 );

@@ -4244,7 +4244,6 @@ dependencies = [
  "frame-try-runtime",
  "pallet-aura",
  "pallet-balances",
- "pallet-evoting",
  "pallet-grandpa",
  "pallet-sudo",
  "pallet-template",

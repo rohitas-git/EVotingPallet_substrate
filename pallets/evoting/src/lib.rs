@@ -6,7 +6,6 @@ mod candidates;
 // mod admins;
 
 pub use crate::pallet::*;
-use scale_info::TypeInfo;
 
 
 pub struct ElectionConfig<BlockNumber>{
