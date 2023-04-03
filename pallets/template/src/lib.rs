@@ -223,7 +223,6 @@ pub mod pallet {
 			// todo: INCOMPLETE
 			Ok(())
 		}
-
 	}
 
 	// fn push_candidate<T>(item: T::AccountId)
@@ -261,7 +260,6 @@ mod tests {
 			UncheckedExtrinsic = UncheckedExtrinsic,
 		{
 			System: frame_system,
-
 			Evoting: pallet_template,
 		}
 	);
@@ -284,7 +282,8 @@ mod tests {
 		type BlockHashCount = ConstU64<250>;
 		type Version = ();
 		type PalletInfo = PalletInfo;
-		type AccountData = pallet_balances::AccountData<u64>;
+		type AccountData = ();
+		// type AccountData = pallet_balances::AccountData<u64>;
 		type OnNewAccount = ();
 		type OnKilledAccount = ();
 		type SystemWeightInfo = ();
@@ -293,50 +292,38 @@ mod tests {
 		type MaxConsumers = ConstU32<16>;
 	}
 
-	impl pallet_balances::Config for Test {
-		type MaxLocks = ();
-		type MaxReserves = ();
-		type ReserveIdentifier = [u8; 8];
-		type Balance = u64;
-		type RuntimeEvent = RuntimeEvent;
-		type DustRemoval = ();
-		type ExistentialDeposit = ConstU64<1>;
-		type AccountStore = System;
-		type WeightInfo = ();
-		type FreezeIdentifier = ();
-		type MaxFreezes = ();
-		type HoldIdentifier = ();
-		type MaxHolds = ();
-	}
+	// impl pallet_balances::Config for Test {
+	// 	type MaxLocks = ();
+	// 	type MaxReserves = ();
+	// 	type ReserveIdentifier = [u8; 8];
+	// 	type Balance = u64;
+	// 	type RuntimeEvent = RuntimeEvent;
+	// 	type DustRemoval = ();
+	// 	type ExistentialDeposit = ConstU64<1>;
+	// 	type AccountStore = System;
+	// 	type WeightInfo = ();
+	// 	type FreezeIdentifier = ();
+	// 	type MaxFreezes = ();
+	// 	type HoldIdentifier = ();
+	// 	type MaxHolds = ();
+	// }
 
 	ord_parameter_types! {
 		pub const One: u64 = 1;
 	}
 	impl Config for Test {
 		type RuntimeEvent = RuntimeEvent;
-		type Currency = Balances;
-		type ReservationFee = ConstU64<2>;
-		type Slashed = ();
-		type ForceOrigin = EnsureSignedBy<One, u64>;
-		type MinLength = ConstU32<3>;
-		type MaxLength = ConstU32<16>;
 	}
 
 	fn new_test_ext() -> sp_io::TestExternalities {
 		let mut t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
-		pallet_balances::GenesisConfig::<Test> { balances: vec![(1, 10), (2, 10)] }
-			.assimilate_storage(&mut t)
-			.unwrap();
 		t.into()
 	}
 
 	#[test]
 	fn kill_name_should_work() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(Nicks::set_name(RuntimeOrigin::signed(2), b"Dave".to_vec()));
-			assert_eq!(Balances::total_balance(&2), 10);
-			assert_ok!(Nicks::kill_name(RuntimeOrigin::signed(1), 2));
-			assert_eq!(Balances::total_balance(&2), 8);
+			assert_ok!();
 			assert_eq!(<NameOf<Test>>::get(2), None);
 		});
 	}
