@@ -23,8 +23,10 @@ pub mod pallet {
 		metadata: MetaData<T>,
 		bulkdata: BulkData,
 	}
-	impl<T: Config> KycData<T>{
-		fn new(meta: MetaData<T>, bulk: BulkData)->Self{}
+	impl<T: Config> KycData<T> {
+		fn new(meta: MetaData<T>, bulk: BulkData) -> Self {
+			KycData { metadata: meta, bulkdata: bulk }
+		}
 	}
 
 	/// For Personal details which will be uploaded to blockchain
@@ -49,22 +51,21 @@ pub mod pallet {
 
 	/// For documents, they gets uploaded to any decentralised data storage like IPFS
 	/// Have to store hashes for documents
+	#[derive(Clone, Eq, PartialEq, Encode, Decode, MaxEncodedLen, RuntimeDebug, TypeInfo)]
 	pub struct BulkData {
-		birth_certificate: bool,
-		pan_card: bool,
-		driver_license: bool,
-		ipfc_data: Hash,
+		birth_certificate: Hash,
+		pan_card: Hash,
+		driver_license: Hash,
+		ipfs_data: Hash,
 	}
-	impl BulkData{
-		fn new(){}
+	impl BulkData {
+		fn new() {}
 	}
-
+	#[derive(Clone, Eq, PartialEq, Encode, Decode, MaxEncodedLen, RuntimeDebug, TypeInfo)]
 	pub enum KycProvider {
-		IPFS
+		IPFS,
 	}
-	trait DecentStorage{
-	}
-
+	trait DecentStorage {}
 
 	/* ------------------------------ Pallet Config ----------------------------- */
 	// Add the runtime configuration trait
@@ -77,12 +78,12 @@ pub mod pallet {
 	/* --------------------------------- Storage -------------------------------- */
 	#[pallet::storage]
 	#[pallet::getter(fn kyc_data)]
-	pub type KycDataForUser<T: Config> =
+	pub type UserKycData<T: Config> =
 		StorageMap<_, Blake2_128Concat, T::AccountId, KycData<T>, OptionQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn oracle_list)]
-	pub type OracleList<T: Config> = StorageValue<_, KycProvider>;
+	pub type ProviderList<T: Config> = StorageValue<_, KycProvider>;
 
 	/* --------------------------------- Events --------------------------------- */
 	#[pallet::event]
@@ -92,7 +93,7 @@ pub mod pallet {
 		UserReqKycVerify,
 		KycVerififedByOracles,
 		ChangeOracleList,
-		KYCVerificationRequest { data: KycData, provider: KycProvider},
+		KYCVerificationRequest { data: KycData<T>, provider: KycProvider },
 		IpfsHashRecieved,
 		NoEvent,
 	}
