@@ -40,6 +40,9 @@ pub mod pallet {
 		pub fn new() -> Self {
 			VoterInfo { vote_status: false, voted_for: None }
 		}
+		pub fn set(val: bool, who: T::AccountId) -> Self {
+			VoterInfo { vote_status: val, voted_for: Some(who) }
+		}
 	}
 
 	#[derive(Clone, Eq, PartialEq, Encode, Decode, MaxEncodedLen, RuntimeDebug, TypeInfo)]
@@ -51,6 +54,9 @@ pub mod pallet {
 	impl CandidateInfo {
 		pub fn new() -> Self {
 			CandidateInfo { vote_count: 0 }
+		}
+		pub fn set(val: u32) -> Self {
+			CandidateInfo { vote_count: val }
 		}
 	}
 
@@ -72,6 +78,10 @@ pub mod pallet {
 
 		fn set_end(&mut self, num: T::BlockNumber) {
 			self.end_block = Some(num);
+		}
+
+		pub fn set(start: T::BlockNumber, end: T::BlockNumber) -> Self {
+			ElectionInfo { start_block: Some(start), end_block: Some(end) }
 		}
 
 		fn ensure_election_progress() -> DispatchResult {
@@ -97,7 +107,7 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn get_election)]
-	pub type ElectionConfig<T: Config> = StorageValue<_, ElectionInfo<T>>;
+	pub type ElectionConfig<T: Config> = StorageValue<_, ElectionInfo<T>, OptionQuery>;
 
 	// #[pallet::storage]
 	// #[pallet::getter(fn candidate_list)]
@@ -171,7 +181,7 @@ pub mod pallet {
 		pub fn give_vote(origin: OriginFor<T>, to_vote_for: T::AccountId) -> DispatchResult {
 			let voter = ensure_signed(origin)?;
 
-			ElectionInfo::<T>::ensure_election_progress()?;
+			// ElectionInfo::<T>::ensure_election_progress()?;
 
 			let is_voter = <AccountToVoterInfo<T>>::contains_key(voter.clone());
 			ensure!(is_voter, Error::<T>::NotRegistered);
@@ -207,11 +217,9 @@ pub mod pallet {
 			let is_configured_election = ElectionConfig::<T>::exists();
 			ensure!(!is_configured_election, Error::<T>::AlreadyConfiguredElection);
 
-			let mut election = ElectionInfo::<T>::new();
-			election.set_start(start);
-			election.set_end(end);
+			let election = ElectionInfo::<T>::set(start, end);
 
-			ElectionConfig::<T>::put(election);
+			ElectionConfig::<T>::put(&election);
 
 			Self::deposit_event(Event::ElectionConfigured);
 			Ok(())

@@ -1,5 +1,6 @@
 use crate::{
-	mock::*, CandidateInfo, Config, ElectionConfig, ElectionInfo, Error, Event, VoterInfo,
+	mock::*, AccountToVoterInfo, CandidateInfo, Config, ElectionConfig, ElectionInfo, Error, Event,
+	VoterInfo,
 };
 use frame_support::{assert_noop, assert_ok};
 // use crate as pallet_template;
@@ -67,6 +68,20 @@ fn test_register_candidate() {
 }
 
 #[test]
+fn test_election_configured() {
+	ExtBuilder::default().build().execute_with(|| {
+		System::set_block_number(5);
+
+		// Assert that Election was configured
+		assert_ok!(TemplateModule::config_election(RuntimeOrigin::root(), 1, 20));
+		// Assert that election storage changed
+		assert_eq!(TemplateModule::get_election().unwrap(), ElectionInfo::<Test>::voted());
+		// Assert that correct event was deposited
+		System::assert_last_event(Event::ElectionConfigured.into());
+	})
+}
+
+#[test]
 fn test_voting_process() {
 	ExtBuilder::default().build().execute_with(|| {
 		setup();
@@ -82,15 +97,15 @@ fn test_voting_process() {
 	})
 }
 
+use frame_support::ensure;
 #[test]
-fn test_election_configured() {
-	System::set_block_number(5);
-	// Assert that Election was configured
-	assert_ok!(TemplateModule::config_election(RuntimeOrigin::signed(ALICE), 1, 20));
-	// Assert that election storage changed
-	assert_eq!(TemplateModule::get_election().unwrap(), ElectionInfo::voted());
-	// Assert that correct event was deposited
-	System::assert_last_event(Event::ElectionConfigured.into());
+fn s() {
+	ExtBuilder::default().build().execute_with(|| {
+		setup();
+		let is_voter = AccountToVoterInfo::contains_key(ALICE.clone());
+		ensure!(is_voter, Error::<Test>::NotRegistered);
+		()
+	})
 }
 
 fn setup() {
@@ -105,24 +120,24 @@ trait Voted {
 	fn ongoing() {}
 }
 
-impl<T: Config> Voted for VoterInfo<T> {
+impl Voted for VoterInfo<Test> {
 	fn voted() -> Self {
 		let status = true;
-		let who = Some(BOB);
-		VoterInfo { vote_status: status, voted_for: who }
+		let who = BOB;
+		VoterInfo::set(status, who)
 	}
 }
 
 impl Voted for CandidateInfo {
 	fn voted() -> Self {
-		CandidateInfo { vote_count: 1 }
+		CandidateInfo::set(1)
 	}
 }
 
-impl<T: Config> Voted for ElectionInfo<T> {
+impl Voted for ElectionInfo<Test> {
 	fn voted() -> Self {
-		let start = 1u32.into();
-		let end = 20.into();
-		ElectionInfo::<T> { start_block: Some(start), end_block: Some(end) }
+		let start = 1;
+		let end = 20;
+		ElectionInfo::set(start, end)
 	}
 }
