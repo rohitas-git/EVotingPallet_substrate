@@ -1,5 +1,10 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
+#[cfg(test)]
+mod mock;
+#[cfg(test)]
+mod tests;
+
 // use frame_support::BoundedVec;
 pub use pallet::*;
 
@@ -20,7 +25,6 @@ pub mod pallet {
 	pub trait Config: frame_system::Config {
 		/// Because this pallet emits events, it depends on the runtime's definition of an event.
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
-
 		// #[pallet::constant]
 		// type MaxCandidates: Get<u32>;
 	}
@@ -33,7 +37,7 @@ pub mod pallet {
 	}
 
 	impl<T: Config> VoterInfo<T> {
-		fn new() -> Self {
+		pub fn new() -> Self {
 			VoterInfo { vote_status: false, voted_for: None }
 		}
 	}
@@ -45,7 +49,7 @@ pub mod pallet {
 	}
 
 	impl CandidateInfo {
-		fn new() -> Self {
+		pub fn new() -> Self {
 			CandidateInfo { vote_count: 0 }
 		}
 	}
@@ -231,172 +235,4 @@ pub mod pallet {
 	// {
 	// 	CandidateList::get().mutate()
 	// }
-}
-
-#[cfg(test)]
-mod tests {
-	use super::*;
-	use crate as pallet_template;
-
-	use frame_support::{
-		assert_noop, assert_ok, ord_parameter_types,
-		traits::{ConstU32, ConstU64},
-	};
-	use frame_system::EnsureSignedBy;
-	use sp_core::H256;
-	use sp_runtime::{
-		testing::Header,
-		traits::{BadOrigin, BlakeTwo256, IdentityLookup},
-	};
-
-	type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
-	type Block = frame_system::mocking::MockBlock<Test>;
-
-	frame_support::construct_runtime!(
-		pub struct Test
-		where
-			Block = Block,
-			NodeBlock = Block,
-			UncheckedExtrinsic = UncheckedExtrinsic,
-		{
-			System: frame_system,
-			Evoting: pallet_template,
-		}
-	);
-
-	impl frame_system::Config for Test {
-		type BaseCallFilter = frame_support::traits::Everything;
-		type BlockWeights = ();
-		type BlockLength = ();
-		type DbWeight = ();
-		type RuntimeOrigin = RuntimeOrigin;
-		type Index = u64;
-		type BlockNumber = u64;
-		type Hash = H256;
-		type RuntimeCall = RuntimeCall;
-		type Hashing = BlakeTwo256;
-		type AccountId = u64;
-		type Lookup = IdentityLookup<Self::AccountId>;
-		type Header = Header;
-		type RuntimeEvent = RuntimeEvent;
-		type BlockHashCount = ConstU64<250>;
-		type Version = ();
-		type PalletInfo = PalletInfo;
-		type AccountData = ();
-		// type AccountData = pallet_balances::AccountData<u64>;
-		type OnNewAccount = ();
-		type OnKilledAccount = ();
-		type SystemWeightInfo = ();
-		type SS58Prefix = ();
-		type OnSetCode = ();
-		type MaxConsumers = ConstU32<16>;
-	}
-
-	// impl pallet_balances::Config for Test {
-	// 	type MaxLocks = ();
-	// 	type MaxReserves = ();
-	// 	type ReserveIdentifier = [u8; 8];
-	// 	type Balance = u64;
-	// 	type RuntimeEvent = RuntimeEvent;
-	// 	type DustRemoval = ();
-	// 	type ExistentialDeposit = ConstU64<1>;
-	// 	type AccountStore = System;
-	// 	type WeightInfo = ();
-	// 	type FreezeIdentifier = ();
-	// 	type MaxFreezes = ();
-	// 	type HoldIdentifier = ();
-	// 	type MaxHolds = ();
-	// }
-
-	ord_parameter_types! {
-		pub const One: u64 = 1;
-	}
-	impl Config for Test {
-		type RuntimeEvent = RuntimeEvent;
-	}
-
-	fn new_test_ext() -> sp_io::TestExternalities {
-		let mut t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
-		t.into()
-	}
-
-	#[test]
-	fn kill_name_should_work() {
-		new_test_ext().execute_with(|| {
-			assert_ok!();
-			assert_eq!(<NameOf<Test>>::get(2), None);
-		});
-	}
-
-	#[test]
-	fn force_name_should_work() {
-		new_test_ext().execute_with(|| {
-			assert_noop!(
-				Nicks::set_name(RuntimeOrigin::signed(2), b"Dr. David Brubeck, III".to_vec()),
-				Error::<Test>::TooLong,
-			);
-
-			assert_ok!(Nicks::set_name(RuntimeOrigin::signed(2), b"Dave".to_vec()));
-			assert_eq!(Balances::reserved_balance(2), 2);
-			assert_noop!(
-				Nicks::force_name(RuntimeOrigin::signed(1), 2, b"Dr. David Brubeck, III".to_vec()),
-				Error::<Test>::TooLong,
-			);
-			assert_ok!(Nicks::force_name(
-				RuntimeOrigin::signed(1),
-				2,
-				b"Dr. Brubeck, III".to_vec()
-			));
-			assert_eq!(Balances::reserved_balance(2), 2);
-			let (name, amount) = <NameOf<Test>>::get(2).unwrap();
-			assert_eq!(name, b"Dr. Brubeck, III".to_vec());
-			assert_eq!(amount, 2);
-		});
-	}
-
-	#[test]
-	fn normal_operation_should_work() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Nicks::set_name(RuntimeOrigin::signed(1), b"Gav".to_vec()));
-			assert_eq!(Balances::reserved_balance(1), 2);
-			assert_eq!(Balances::free_balance(1), 8);
-			assert_eq!(<NameOf<Test>>::get(1).unwrap().0, b"Gav".to_vec());
-
-			assert_ok!(Nicks::set_name(RuntimeOrigin::signed(1), b"Gavin".to_vec()));
-			assert_eq!(Balances::reserved_balance(1), 2);
-			assert_eq!(Balances::free_balance(1), 8);
-			assert_eq!(<NameOf<Test>>::get(1).unwrap().0, b"Gavin".to_vec());
-
-			assert_ok!(Nicks::clear_name(RuntimeOrigin::signed(1)));
-			assert_eq!(Balances::reserved_balance(1), 0);
-			assert_eq!(Balances::free_balance(1), 10);
-		});
-	}
-
-	#[test]
-	fn error_catching_should_work() {
-		new_test_ext().execute_with(|| {
-			assert_noop!(Nicks::clear_name(RuntimeOrigin::signed(1)), Error::<Test>::Unnamed);
-
-			assert_noop!(
-				Nicks::set_name(RuntimeOrigin::signed(3), b"Dave".to_vec()),
-				pallet_balances::Error::<Test, _>::InsufficientBalance
-			);
-
-			assert_noop!(
-				Nicks::set_name(RuntimeOrigin::signed(1), b"Ga".to_vec()),
-				Error::<Test>::TooShort
-			);
-			assert_noop!(
-				Nicks::set_name(RuntimeOrigin::signed(1), b"Gavin James Wood, Esquire".to_vec()),
-				Error::<Test>::TooLong
-			);
-			assert_ok!(Nicks::set_name(RuntimeOrigin::signed(1), b"Dave".to_vec()));
-			assert_noop!(Nicks::kill_name(RuntimeOrigin::signed(2), 1), BadOrigin);
-			assert_noop!(
-				Nicks::force_name(RuntimeOrigin::signed(2), 1, b"Whatever".to_vec()),
-				BadOrigin
-			);
-		});
-	}
 }
