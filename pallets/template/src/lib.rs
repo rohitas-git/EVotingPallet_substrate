@@ -253,35 +253,22 @@ pub mod pallet {
 
 			// Candidates
 			let mut winner_num = 0;
+			let mut winner_vec: BoundedVec<T::AccountId, ConstU32<100>> = bounded_vec![];
 			for key in AccountToCandidateInfo::<T>::iter_keys() {
 				let candidate_info = AccountToCandidateInfo::<T>::get(key.clone()).unwrap();
 				let votes = candidate_info.clone().vote_count;
 				let max_votes = MaxVote::<T>::get();
 
-				// ensure!(
-				// 	MaxVoteCandidate::<T>::get().unwrap_or_default().len() <= 100,
-				// 	Error::<T>::MaxCandidatesExceed
-				// );
-
-				let mut winner_vec: BoundedVec<T::AccountId, ConstU32<100>> = bounded_vec![];
-				// MaxVoteCandidate::<T>::put(winner_vec);
-
 				if votes == max_votes {
 					ensure!(winner_num <= 100, Error::<T>::MaxCandidatesExceed);
 					winner_num += 1;
-
 					winner_vec.try_push(key.clone()).unwrap();
-					// MaxVoteCandidate::<T>::mutate(
-					// 	|list: &mut Option<BoundedVec<T::AccountId, ConstU32<100>>>| {
-					// 		list.clone().unwrap().force_push(key)
-					// 	},
-					// );
-
-					println!("Winner Vec: {:?}", winner_vec);
-					// println!("Winner Vec: {:?}", Self::max_votes_candidate().unwrap_or_default());
 				}
-				println!("Winner Vec: {:?}", winner_vec);
+				
 			}
+			// println!("Winner Vec: {:?}", &winner_vec);
+			MaxVoteCandidate::<T>::put(winner_vec);
+			Self::deposit_event(Event::WinnerVecStored);
 			Ok(())
 		}
 	}

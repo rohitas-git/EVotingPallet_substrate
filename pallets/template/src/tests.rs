@@ -174,8 +174,8 @@ fn test_winner() {
 		// BlockNumber
 		System::set_block_number(25);
 		
-		println!("Max Votes: {}",TemplateModule::max_votes());
-		// println!("Winner Vec: {:?}", TemplateModule::max_votes_candidate().unwrap_or_default());
+		// println!("Max Votes: {}",TemplateModule::max_votes());
+		// println!("Winner Vec: {:?}", TemplateModule::max_votes_candidate().clone().unwrap_or_default());
 
 		use frame_support::BoundedVec;
 		use frame_support::pallet_prelude::ConstU32;
@@ -184,9 +184,9 @@ fn test_winner() {
 		// Assert that winner was called
 		assert_ok!(TemplateModule::winner(RuntimeOrigin::signed(ALICE)));
 		// Assert that storage was correctly modified
-		// assert_eq!(TemplateModule::max_votes_candidate().unwrap_or_default(), win);
+		assert_eq!(TemplateModule::max_votes_candidate().unwrap(), win);
 		// Assert that correct event was deposited
-		// System::assert_last_event(Event::WinnerVecStored.into());
+		System::assert_last_event(Event::WinnerVecStored.into());
 	})
 }
 
