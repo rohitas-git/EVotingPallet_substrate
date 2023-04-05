@@ -13,6 +13,9 @@ pub type BlockNumber = u64;
 
 pub const ALICE: AccountId = 1;
 pub const BOB: AccountId = 2;
+pub const DAVE: AccountId = 3;
+pub const RON: AccountId= 4;
+pub const JOHN: AccountId=5;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
