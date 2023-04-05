@@ -6,13 +6,13 @@ mod mock;
 mod tests;
 
 // use frame_support::BoundedVec;
-pub use pallet::*;
+pub use self::pallet::*;
 
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
 
-	use frame_support::{bounded_vec, pallet_prelude::*};
+	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
 
 	// type MyCandidateList = BoundedVec<CandidateInfo, ConstU32<100>>;
@@ -252,8 +252,9 @@ pub mod pallet {
 			ensure!(block_number >= election.end_block.unwrap(), Error::<T>::ElectionNotEnded);
 
 			// Candidates
+			// use frame_support::pallet_prelude::bounded_vec;
 			let mut winner_num = 0;
-			let mut winner_vec: BoundedVec<T::AccountId, ConstU32<100>> = bounded_vec![];
+			let mut winner_vec: BoundedVec<T::AccountId, ConstU32<100>> = Default::default();
 			for key in AccountToCandidateInfo::<T>::iter_keys() {
 				let candidate_info = AccountToCandidateInfo::<T>::get(key.clone()).unwrap();
 				let votes = candidate_info.clone().vote_count;
@@ -264,7 +265,6 @@ pub mod pallet {
 					winner_num += 1;
 					winner_vec.try_push(key.clone()).unwrap();
 				}
-				
 			}
 			// println!("Winner Vec: {:?}", &winner_vec);
 			MaxVoteCandidate::<T>::put(winner_vec);
