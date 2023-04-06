@@ -346,7 +346,7 @@ fn err_voting_not_registered_candidate() {
 }
 
 #[test]
-fn err_winner() {
+fn error_calling_winner_before_end_of_election() {
 	ExtBuilder::default().build().execute_with(|| {
 		// Election
 		assert_ok!(TemplateModule::config_election(RuntimeOrigin::root(), 1, 20));
