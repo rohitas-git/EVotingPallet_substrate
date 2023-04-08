@@ -1,4 +1,5 @@
 use crate as pallet_template;
+use frame_benchmarking::runtime_decl_for_benchmark::DispatchResult;
 use frame_support::traits::{ConstU16, ConstU64};
 use sp_core::H256;
 use sp_runtime::{
@@ -10,6 +11,7 @@ use sp_runtime::{
 // pub type BlockNumber = <Test as frame_system::Config>::BlockNumber;
 pub type AccountId = u64;
 pub type BlockNumber = u64;
+type Origin = <Test as frame_sytem::Config>::RuntimeOrigin;
 
 pub const ALICE: AccountId = 1;
 pub const BOB: AccountId = 2;
@@ -17,10 +19,32 @@ pub const DAVE: AccountId = 3;
 pub const RON: AccountId= 4;
 pub const JOHN: AccountId=5;
 
+pub const  ROOT_USER: Origin  = RuntimeOrigin::root(); 
+pub const  SIGNED_BY_ALICE: Origin  = RuntimeOrigin::signed(ALICE); 
+pub const  SIGNED_BY_BOB: Origin  = RuntimeOrigin::signed(BOB); 
+pub const  SIGNED_BY_DAVE: Origin  = RuntimeOrigin::signed(DAVE);
+pub const  SIGNED_BY_RON: Origin  = RuntimeOrigin::signed(RON);
+pub const  SIGNED_BY_JOHN: Origin  = RuntimeOrigin::signed(JOHN);
+
+pub const ELECTION_START_TIME: u64 = 5;
+pub const ELECTION_END_TIME: u64 = 25;
+pub const TIME_BEFORE_ELECTION: u64 = 2;
+pub const TIME_DURING_ELECTION: u64 = 10;
+pub const TIME_AFTER_ELECTION: u64 = 40;
+
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 
 // Configure a mock runtime to test the pallet.
+
+// `frame_support::construct_runtime!` is a macro that generates the necessary code to define a runtime
+// for a Substrate-based blockchain. 
+// It takes in several arguments, including the name of the runtime
+// (`Test` in this case), the types of blocks to use (`Block` and `NodeBlock`), and the types of
+// extrinsics to use (`UncheckedExtrinsic`). It also specifies which pallets to include in the runtime,
+// in this case `System` and `TemplateModule`. The generated code includes various implementations of
+// traits required by the Substrate framework, such as `frame_system::Config` and
+// `pallet_template::Config`.
 frame_support::construct_runtime!(
 	pub enum Test where
 		Block = Block,
@@ -83,6 +107,37 @@ impl ExtBuilder {
 		t.into()
 	}
 }
+
+
+pub fn setup_for_one_voter_one_candidate_and_election_time(){
+	register_voter(SIGNED_BY_ALICE);
+	register_candidate(SIGNED_BY_BOB);
+	configure_election_start_and_end_time(ROOT_USER, ELECTION_START_TIME, ELECTION_END_TIME);
+}
+
+pub fn set_current_time(time:u64){
+	System::set_block_number(time);
+}
+
+pub fn register_voter(who: RuntimeOrigin)->DispatchResult{
+	TemplateModule::register_voter(who)
+}
+
+pub fn register_candidate(who: RuntimeOrigin)->DispatchResult{
+	TemplateModule::register_candidate(who)
+}
+
+pub fn give_vote(from:RuntimeOrigin, to: AccountId)->DispatchResult{
+	TemplateModule::give_vote(from, to)
+}
+
+pub fn configure_election_start_and_end_time(root: Runtime, start: BlockNumber, end: BlockNumber)-> DispatchResult{
+	TemplateModule::config_election(root,start,end)
+}
+
+// pub fn account_info_of_voter(whose: AccountId)-> Option<>{
+
+// }
 
 // Both are Equivalent:
 // -ExtBuilder::default().build()

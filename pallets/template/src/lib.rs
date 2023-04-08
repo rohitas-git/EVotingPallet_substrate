@@ -1,11 +1,5 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-#[cfg(test)]
-mod mock;
-#[cfg(test)]
-mod tests;
-
-// use frame_support::BoundedVec;
 pub use pallet::*;
 
 #[frame_support::pallet]
@@ -14,8 +8,7 @@ pub mod pallet {
 
 	use frame_support::{bounded_vec, pallet_prelude::*};
 	use frame_system::pallet_prelude::*;
-
-	// type MyCandidateList = BoundedVec<CandidateInfo, ConstU32<100>>;
+	// use sp_core::ConstU32;
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
@@ -25,8 +18,6 @@ pub mod pallet {
 	pub trait Config: frame_system::Config {
 		/// Because this pallet emits events, it depends on the runtime's definition of an event.
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
-		// #[pallet::constant]
-		// type MaxCandidates: Get<u32>;
 	}
 
 	#[derive(Clone, Eq, PartialEq, Encode, Decode, MaxEncodedLen, RuntimeDebug, TypeInfo)]
@@ -37,11 +28,8 @@ pub mod pallet {
 	}
 
 	impl<T: Config> VoterInfo<T> {
-		pub fn new() -> Self {
+		fn new() -> Self {
 			VoterInfo { vote_status: false, voted_for: None }
-		}
-		pub fn set(val: bool, who: T::AccountId) -> Self {
-			VoterInfo { vote_status: val, voted_for: Some(who) }
 		}
 	}
 
@@ -52,40 +40,8 @@ pub mod pallet {
 	}
 
 	impl CandidateInfo {
-		pub fn new() -> Self {
+		fn new() -> Self {
 			CandidateInfo { vote_count: 0 }
-		}
-		pub fn set(val: u32) -> Self {
-			CandidateInfo { vote_count: val }
-		}
-	}
-
-	#[derive(Clone, Eq, PartialEq, Encode, Decode, MaxEncodedLen, RuntimeDebug, TypeInfo)]
-	#[scale_info(skip_type_params(T))]
-	pub struct ElectionInfo<T: Config> {
-		start_block: Option<T::BlockNumber>,
-		end_block: Option<T::BlockNumber>,
-	}
-
-	impl<T: Config> ElectionInfo<T> {
-		fn _new() -> Self {
-			ElectionInfo { start_block: None, end_block: None }
-		}
-
-		pub fn set(start: T::BlockNumber, end: T::BlockNumber) -> Self {
-			ElectionInfo { start_block: Some(start), end_block: Some(end) }
-		}
-
-		pub fn ensure_election_progress() -> DispatchResult {
-			let block_number = <frame_system::Pallet<T>>::block_number();
-
-			ensure!(ElectionConfig::<T>::get().is_some(), Error::<T>::ElectionNotConfigured);
-			let election = ElectionConfig::<T>::get().unwrap();
-
-			ensure!(block_number >= election.start_block.unwrap(), Error::<T>::ElectionNotStarted);
-			ensure!(block_number <= election.end_block.unwrap(), Error::<T>::ElectionEnded);
-
-			Ok(())
 		}
 	}
 
@@ -99,32 +55,14 @@ pub mod pallet {
 	pub type AccountToCandidateInfo<T: Config> =
 		StorageMap<_, Blake2_128Concat, T::AccountId, CandidateInfo, OptionQuery>;
 
-	#[pallet::storage]
-	#[pallet::getter(fn get_election)]
-	pub type ElectionConfig<T: Config> = StorageValue<_, ElectionInfo<T>, OptionQuery>;
-
-	// #[pallet::storage]
-	// #[pallet::getter(fn candidate_list)]
-	// pub type CandidateList<T: Config> = StorageValue<_, MyCandidateList, ValueQuery>;
-
-	#[pallet::storage]
-	#[pallet::getter(fn max_votes_candidate)]
-	pub type MaxVoteCandidate<T: Config> =
-		StorageValue<_, BoundedVec<T::AccountId, ConstU32<100>>, OptionQuery>;
-
-	#[pallet::storage]
-	#[pallet::getter(fn max_votes)]
-	pub type MaxVote<T: Config> = StorageValue<_, u32, ValueQuery>;
-
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
 		RegisterVoter,
 		RegisterCandidate,
+
 		VoteSuccess,
 		RecieveVoteCount,
-		ElectionConfigured,
-		WinnerVecStored,
 	}
 
 	// Errors inform users that something went wrong.
@@ -132,13 +70,8 @@ pub mod pallet {
 	pub enum Error<T> {
 		AlreadyVoted,
 		AlreadyRegistered,
-		AlreadyConfiguredElection,
+
 		NotRegistered,
-		ElectionNotConfigured,
-		ElectionNotStarted,
-		ElectionEnded,
-		ElectionNotEnded,
-		MaxCandidatesExceed,
 	}
 
 	// Dispatchable functions allows users to interact with the pallet and invoke state changes.
@@ -184,41 +117,18 @@ pub mod pallet {
 		#[pallet::call_index(2)]
 		#[pallet::weight(0)]
 		pub fn give_vote(origin: OriginFor<T>, to_vote_for: T::AccountId) -> DispatchResult {
-			let voter_account = ensure_signed(origin)?;
+			let voter = ensure_signed(origin)?;
 
-			ElectionInfo::<T>::ensure_election_progress()?;
-
-			let is_voter = <AccountToVoterInfo<T>>::contains_key(voter_account.clone());
+			let is_voter = <AccountToVoterInfo<T>>::contains_key(voter.clone());
 			ensure!(is_voter, Error::<T>::NotRegistered);
 
-			let is_candidate = <AccountToCandidateInfo<T>>::contains_key(to_vote_for.clone());
-			ensure!(is_candidate, Error::<T>::NotRegistered);
-
-			let voterinfo =
-				<AccountToVoterInfo<T>>::get(&voter_account).clone().expect("No VoterInfo");
-			ensure!(!voterinfo.vote_status, Error::<T>::AlreadyVoted);
+			let voter = <AccountToVoterInfo<T>>::get(voter).clone().expect("No VoterInfo");
+			ensure!(voter.vote_status, Error::<T>::AlreadyVoted);
 
 			AccountToCandidateInfo::<T>::mutate(to_vote_for.clone(), |val| {
 				val.as_mut().unwrap().vote_count += 1
 			});
 
-			AccountToVoterInfo::<T>::mutate(voter_account.clone(), |voter| {
-				voter.as_mut().unwrap().vote_status = true
-			});
-
-			AccountToVoterInfo::<T>::mutate(voter_account.clone(), |voter| {
-				voter.as_mut().unwrap().voted_for = Some(to_vote_for.clone())
-			});
-
-			// Max Votes
-			let max_votes = MaxVote::<T>::get();
-			let candidate_votes =
-				AccountToCandidateInfo::<T>::get(&to_vote_for).unwrap().vote_count;
-			if max_votes < candidate_votes {
-				MaxVote::<T>::put(candidate_votes);
-			}
-
-			Self::deposit_event(Event::VoteSuccess);
 			Ok(())
 		}
 
@@ -273,3 +183,4 @@ pub mod pallet {
 		}
 	}
 }
+
