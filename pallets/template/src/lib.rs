@@ -12,10 +12,8 @@ pub use pallet::*;
 pub mod pallet {
 	use super::*;
 
-	use frame_support::{bounded_vec, pallet_prelude::*};
+	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
-
-	// type MyCandidateList = BoundedVec<CandidateInfo, ConstU32<100>>;
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
@@ -23,10 +21,7 @@ pub mod pallet {
 	/// Configure the pallet by specifying the parameters and types on which it depends.
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
-		/// Because this pallet emits events, it depends on the runtime's definition of an event.
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
-		// #[pallet::constant]
-		// type MaxCandidates: Get<u32>;
 	}
 
 	#[derive(Clone, Eq, PartialEq, Encode, Decode, MaxEncodedLen, RuntimeDebug, TypeInfo)]
@@ -253,7 +248,7 @@ pub mod pallet {
 
 			// Candidates
 			let mut winner_num = 0;
-			let mut winner_vec: BoundedVec<T::AccountId, ConstU32<100>> = bounded_vec![];
+			let mut winner_vec: BoundedVec<T::AccountId, ConstU32<100>> = Default::default();
 			for key in AccountToCandidateInfo::<T>::iter_keys() {
 				let candidate_info = AccountToCandidateInfo::<T>::get(key.clone()).unwrap();
 				let votes = candidate_info.clone().vote_count;
@@ -264,7 +259,6 @@ pub mod pallet {
 					winner_num += 1;
 					winner_vec.try_push(key.clone()).unwrap();
 				}
-				
 			}
 			// println!("Winner Vec: {:?}", &winner_vec);
 			MaxVoteCandidate::<T>::put(winner_vec);
