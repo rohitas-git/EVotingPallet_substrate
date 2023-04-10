@@ -6,6 +6,13 @@ use crate::{
 use frame_support::{assert_noop, assert_ok};
 // use crate as pallet_template;
 
+// !Funda: give when then
+// ! Wrap it with fn set_election_time
+// ! Remove code duplication
+// ! Better Naming (Descriptive names also work)
+// ! Split code into meaningful files
+// ! Replace number with meaningful const/variable
+
 #[test]
 fn test_during_election() {
 	new_test_ext().execute_with(|| {
