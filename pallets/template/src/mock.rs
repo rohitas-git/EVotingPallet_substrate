@@ -10,7 +10,7 @@ use sp_runtime::{
 // pub type BlockNumber = <Test as frame_system::Config>::BlockNumber;
 pub type AccountId = u64;
 pub type BlockNumber = u64;
-type Origin = <Test as frame_sytem::Config>::RuntimeOrigin;
+type Origin = <Test as frame_sytem::Config>::RuntimeOrigin; // ! How to alias runtimeorigin?
 
 pub const ALICE: AccountId = 1;
 pub const BOB: AccountId = 2;
