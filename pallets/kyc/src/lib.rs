@@ -34,7 +34,7 @@ pub mod pallet {
 	#[scale_info(skip_type_params(T))]
 	pub struct MetaData<T: Config> {
 		name: BoundedVec<u8, ConstU32<100>>,
-		age: u32,
+		date_of_birth: (u8,u8,u32), // Date/Month/Year
 		on_chain_address: T::AccountId,
 		aadhar_number: u32,
 	}
@@ -67,6 +67,12 @@ pub mod pallet {
 	}
 	trait DecentStorage {}
 
+	pub enum KycStatus{
+		Pending,
+		Verified,
+		NotVerified,
+	}
+
 	/* ------------------------------ Pallet Config ----------------------------- */
 	// Add the runtime configuration trait
 	// All types and constants go here.
@@ -87,17 +93,26 @@ pub mod pallet {
 
 	/* --------------------------------- Events --------------------------------- */
 	#[pallet::event]
-	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
-		UserRegistered,
-		UserReqKycVerify,
-		KycVerififedByOracles,
-		ChangeOracleList,
-		KYCVerificationRequest { data: KycData<T>, provider: KycProvider },
-		IpfsHashRecieved,
-		NoEvent,
+		KycNotRegistered,
+		Kyc
 	}
 
+	/* ---------------------------------- Error --------------------------------- */
+	#[pallet::error]
+	pub enum Error<T> {
+		KycNotRegistered,
+		CustomerVerificationError,
+		KycNotFound,
+		OcrScanFailed,
+		CrossCheckFailed,
+
+		DOBInvalid,
+		NameInvalid,
+		AddressInvalid,
+		OnChainAddressInvalid
+
+	}
 	/* ---------------------------------- Hooks --------------------------------- */
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
@@ -107,19 +122,38 @@ pub mod pallet {
 	impl<T: Config> Pallet<T> {
 		#[pallet::call_index(0)]
 		#[pallet::weight(0)]
-		pub fn store_data(origin: OriginFor<T>) -> DispatchResult {
+		pub fn customer_submit_kyc(origin: OriginFor<T>) -> DispatchResult {
 			Ok(())
 		}
 
 		#[pallet::call_index(1)]
 		#[pallet::weight(0)]
-		pub fn update_data(origin: OriginFor<T>) -> DispatchResult {
+		pub fn customer_update_data(origin: OriginFor<T>) -> DispatchResult {
+			Ok(())
+		}
+
+		#[pallet::call_index(4)]
+		#[pallet::weight(0)]
+		pub fn upload_docs(origin: OriginFor<T>) -> DispatchResult {
+			Ok(())
+		}
+
+		#[pallet::call_index(5)]
+		#[pallet::weight(0)]
+		pub fn check_with_scanned_data(origin: OriginFor<T>) -> DispatchResult {
+			// Done by KYC Provider or yourself
 			Ok(())
 		}
 
 		#[pallet::call_index(2)]
 		#[pallet::weight(0)]
 		pub fn revoke_data(origin: OriginFor<T>) -> DispatchResult {
+			Ok(())
+		}
+
+		#[pallet::call_index(3)]
+		#[pallet::weight(0)]
+		pub fn fetch_verification_status(origin: OriginFor<T>) -> DispatchResult {
 			Ok(())
 		}
 	}
@@ -142,7 +176,11 @@ mod test {
 
 	use crate::mock::*;
 
-	fn kyc_verification() {
+	fn submit_KYC(){
+	
+		
+	}
+	fn kyc_verification_by_finanical_institutes() {
 		/// This data will be stored in the database and  also a transaction will be
 		/// recorded on-chain stating that XYZ(user) submitted a request to get KYC verified .
 		fn kyc_store_verify() {
