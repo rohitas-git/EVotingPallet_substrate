@@ -6,52 +6,91 @@ use crate::{
 use frame_support::{assert_noop, assert_ok};
 // use crate as pallet_template;
 
-// !Funda: give when then
-// ! Wrap it with fn set_election_time
 #[test]
-fn test_when_voter_gives_vote_to_candidate() {
+fn test_during_election() {
+	new_test_ext().execute_with(|| {
+		test_voting_process();
+	})
+}
+
+#[test]
+fn test_voting_process() {
 	ExtBuilder::default().build().execute_with(|| {
-		
-		setup_for_one_voter_one_candidate_and_election_time();
-		set_current_time(TIME_DURING_ELECTION);
+		// Voter
+		assert_ok!(TemplateModule::register_voter(RuntimeOrigin::signed(ALICE)));
+		assert_eq!(TemplateModule::voter_account(ALICE).unwrap(), VoterInfo::new());
+
+		// Candidate
+		assert_ok!(TemplateModule::register_candidate(RuntimeOrigin::signed(BOB)));
+		assert_eq!(TemplateModule::candidate_account(BOB).unwrap(), CandidateInfo::new());
+
+		// Election
+		assert_ok!(TemplateModule::config_election(RuntimeOrigin::root(), 1, 20));
+		assert_eq!(TemplateModule::get_election().unwrap(), ElectionInfo::<Test>::voted());
+
+		// BlockNumber
+		System::set_block_number(5);
+
+		// -------------------------------- Voting -------------------------------
 
 		// Assert that ALICE gives vote to BOB is OK
-		assert_ok!(give_vote(SIGNER_BY_ALICE, BOB));
+		assert_ok!(TemplateModule::give_vote(RuntimeOrigin::signed(ALICE), BOB));
 		// Assert that BOB's CandidateInfo has changed
-		assert_eq!(candidate_account(BOB).unwrap(), CandidateInfo::voted());
+		assert_eq!(TemplateModule::candidate_account(BOB).unwrap(), CandidateInfo::voted());
 		// Assert that ALICE's VoterInfo
-		assert_eq!(voter_account(ALICE).unwrap(), VoterInfo::voted());
+		assert_eq!(TemplateModule::voter_account(ALICE).unwrap(), VoterInfo::voted());
 		// Assert that correct event was deposited
 		System::assert_last_event(Event::VoteSuccess.into());
 	})
 }
 
 #[test]
-fn test_raise_error_voting_before_election_time() {
+fn err_before_election() {
 	new_test_ext().execute_with(|| {
-		setup_for_one_voter_one_candidate_and_election_time();
-		set_current_time(TIME_BEFORE_ELECTION);
+		// Voter
+		assert_ok!(TemplateModule::register_voter(RuntimeOrigin::signed(ALICE)));
+		assert_eq!(TemplateModule::voter_account(ALICE).unwrap(), VoterInfo::new());
 
+		// Candidate
+		assert_ok!(TemplateModule::register_candidate(RuntimeOrigin::signed(BOB)));
+		assert_eq!(TemplateModule::candidate_account(BOB).unwrap(), CandidateInfo::new());
+
+		// Election
+		assert_ok!(TemplateModule::config_election(RuntimeOrigin::root(), 1, 20));
+		assert_eq!(TemplateModule::get_election().unwrap(), ElectionInfo::<Test>::voted());
+
+		// BlockNumber
+		System::set_block_number(0);
+
+		// Voting
 		assert_noop!(
-			TemplateModule::give_vote(SIGNER_BY_ALICE, BOB),
+			TemplateModule::give_vote(RuntimeOrigin::signed(ALICE), BOB),
 			Error::<Test>::ElectionNotStarted
 		);
 	})
 }
 
-// ! Remove code duplication
-// ! Better Naming (Descriptive names also work)
-// ! Split code into meaningful files
-// ! Replace number with meaningful const/variable
 #[test]
-fn test_error_after_election() {
+fn err_after_election() {
 	new_test_ext().execute_with(|| {
-		setup_for_one_voter_one_candidate_and_election_time();
-		set_current_time(TIME_AFTER_ELECTION);
+		// Voter
+		assert_ok!(TemplateModule::register_voter(RuntimeOrigin::signed(ALICE)));
+		assert_eq!(TemplateModule::voter_account(ALICE).unwrap(), VoterInfo::new());
+
+		// Candidate
+		assert_ok!(TemplateModule::register_candidate(RuntimeOrigin::signed(BOB)));
+		assert_eq!(TemplateModule::candidate_account(BOB).unwrap(), CandidateInfo::new());
+
+		// Election
+		assert_ok!(TemplateModule::config_election(RuntimeOrigin::root(), 1, 20));
+		assert_eq!(TemplateModule::get_election().unwrap(), ElectionInfo::<Test>::voted());
+
+		// BlockNumber
+		System::set_block_number(25);
 
 		// Voting
 		assert_noop!(
-			TemplateModule::give_vote(SIGNER_BY_ALICE, BOB),
+			TemplateModule::give_vote(RuntimeOrigin::signed(ALICE), BOB),
 			Error::<Test>::ElectionEnded
 		);
 	})
@@ -63,7 +102,7 @@ fn test_register_voter() {
 		// Go past genesis block so events get deposited
 		System::set_block_number(1);
 		// Register Voter
-		assert_ok!(register_voter(SIGNER_BY_ALICE));
+		assert_ok!(TemplateModule::register_voter(RuntimeOrigin::signed(ALICE)));
 		// Read pallet storage and assert an expected result.
 		assert_eq!(TemplateModule::voter_account(ALICE).unwrap(), VoterInfo::new());
 		// Assert that the correct event was deposited
@@ -104,14 +143,14 @@ fn test_election_configured() {
 fn test_winner() {
 	ExtBuilder::default().build().execute_with(|| {
 		// Voter
-		assert_ok!(register_voter(SIGNER_BY_ALICE));
-		assert_ok!(register_voter(RuntimeOrigin::signed(BOB)));
-		assert_ok!(register_voter(RuntimeOrigin::signed(DAVE)));
-		assert_ok!(register_voter(RuntimeOrigin::signed(JOHN)));
-		assert_ok!(register_voter(RuntimeOrigin::signed(RON)));
+		assert_ok!(TemplateModule::register_voter(RuntimeOrigin::signed(ALICE)));
+		assert_ok!(TemplateModule::register_voter(RuntimeOrigin::signed(BOB)));
+		assert_ok!(TemplateModule::register_voter(RuntimeOrigin::signed(DAVE)));
+		assert_ok!(TemplateModule::register_voter(RuntimeOrigin::signed(JOHN)));
+		assert_ok!(TemplateModule::register_voter(RuntimeOrigin::signed(RON)));
 		
 		// Candidate
-		TemplateModule::register_candidate(RuntimeOrigin::signed(DAVE));
+		assert_ok!(TemplateModule::register_candidate(RuntimeOrigin::signed(DAVE)));
 		assert_ok!(TemplateModule::register_candidate(RuntimeOrigin::signed(RON)));
 		assert_ok!(TemplateModule::register_candidate(RuntimeOrigin::signed(JOHN)));
 		
@@ -125,7 +164,7 @@ fn test_winner() {
 		// -------------------------------- Voting -------------------------------
 
 		// Assert that votes are given correctly
-		assert_ok!(TemplateModule::give_vote(SIGNER_BY_ALICE, DAVE));
+		assert_ok!(TemplateModule::give_vote(RuntimeOrigin::signed(ALICE), DAVE));
 		assert_ok!(TemplateModule::give_vote(RuntimeOrigin::signed(JOHN), DAVE));
 		assert_ok!(TemplateModule::give_vote(RuntimeOrigin::signed(DAVE), RON));
 		assert_ok!(TemplateModule::give_vote(RuntimeOrigin::signed(BOB), RON));
@@ -143,7 +182,7 @@ fn test_winner() {
 		let win: BoundedVec<<Test as frame_system::Config>::AccountId, ConstU32<100>> = vec![DAVE,RON].try_into().unwrap();
 
 		// Assert that winner was called
-		assert_ok!(TemplateModule::winner(SIGNER_BY_ALICE));
+		assert_ok!(TemplateModule::winner(RuntimeOrigin::signed(ALICE)));
 		// Assert that storage was correctly modified
 		assert_eq!(TemplateModule::max_votes_candidate().unwrap(), win);
 		// Assert that correct event was deposited
@@ -152,26 +191,26 @@ fn test_winner() {
 }
 
 #[test]
-fn test_error_twice_register_voter() {
+fn err_twice_register_voter() {
 	ExtBuilder::default().build().execute_with(|| {
 		System::set_block_number(1);
 		// Register Voter
-		assert_ok!(register_voter(SIGNER_BY_ALICE));
+		assert_ok!(TemplateModule::register_voter(RuntimeOrigin::signed(ALICE)));
 		// Read pallet storage and assert an expected result.
-		assert_eq!(voter_account(ALICE).unwrap(), VoterInfo::new());
+		assert_eq!(TemplateModule::voter_account(ALICE).unwrap(), VoterInfo::new());
 		// Assert that the correct event was deposited
 		System::assert_last_event(Event::RegisterVoter.into());
 
 		// Register Voter Again
 		assert_noop!(
-			register_voter(SIGNER_BY_ALICE),
+			TemplateModule::register_voter(RuntimeOrigin::signed(ALICE)),
 			Error::<Test>::AlreadyRegistered
 		);
 	})
 }
 
 #[test]
-fn test_raise_error_when_candidate_registered_twice() {
+fn err_twice_register_candidate() {
 	ExtBuilder::default().build().execute_with(|| {
 		System::set_block_number(1);
 		// Register Candidate
@@ -193,8 +232,8 @@ fn test_raise_error_when_candidate_registered_twice() {
 fn err_already_voted() {
 	ExtBuilder::default().build().execute_with(|| {
 		// Voter
-		assert_ok!(register_voter(SIGNER_BY_ALICE));
-		assert_eq!(voter_account(ALICE).unwrap(), VoterInfo::new());
+		assert_ok!(TemplateModule::register_voter(RuntimeOrigin::signed(ALICE)));
+		assert_eq!(TemplateModule::voter_account(ALICE).unwrap(), VoterInfo::new());
 
 		// Candidate
 		assert_ok!(TemplateModule::register_candidate(RuntimeOrigin::signed(BOB)));
@@ -210,11 +249,11 @@ fn err_already_voted() {
 		// -------------------------------- Voting -------------------------------
 
 		// Assert that ALICE gives vote to BOB is OK
-		assert_ok!(TemplateModule::give_vote(SIGNER_BY_ALICE, BOB));
+		assert_ok!(TemplateModule::give_vote(RuntimeOrigin::signed(ALICE), BOB));
 		// Assert that BOB's CandidateInfo has changed
 		assert_eq!(TemplateModule::candidate_account(BOB).unwrap(), CandidateInfo::voted());
 		// Assert that ALICE's VoterInfo
-		assert_eq!(voter_account(ALICE).unwrap(), VoterInfo::voted());
+		assert_eq!(TemplateModule::voter_account(ALICE).unwrap(), VoterInfo::voted());
 		// Assert that correct event was deposited
 		System::assert_last_event(Event::VoteSuccess.into());
 
@@ -229,8 +268,8 @@ fn err_already_voted() {
 fn err_voting_election_not_configured() {
 	ExtBuilder::default().build().execute_with(|| {
 		// Voter
-		assert_ok!(register_voter(RuntimeOrigin::signed(ALICE)));
-		assert_eq!(voter_account(ALICE).unwrap(), VoterInfo::new());
+		assert_ok!(TemplateModule::register_voter(RuntimeOrigin::signed(ALICE)));
+		assert_eq!(TemplateModule::voter_account(ALICE).unwrap(), VoterInfo::new());
 
 		// Candidate
 		assert_ok!(TemplateModule::register_candidate(RuntimeOrigin::signed(BOB)));
@@ -256,8 +295,8 @@ fn err_voting_election_not_configured() {
 fn err_voting_not_registered_voter() {
 	ExtBuilder::default().build().execute_with(|| {
 		// Voter
-		// assert_ok!(register_voter(RuntimeOrigin::signed(ALICE)));
-		// assert_eq!(voter_account(ALICE).unwrap(), VoterInfo::new());
+		// assert_ok!(TemplateModule::register_voter(RuntimeOrigin::signed(ALICE)));
+		// assert_eq!(TemplateModule::voter_account(ALICE).unwrap(), VoterInfo::new());
 
 		// Candidate
 		assert_ok!(TemplateModule::register_candidate(RuntimeOrigin::signed(BOB)));
@@ -283,8 +322,8 @@ fn err_voting_not_registered_voter() {
 fn err_voting_not_registered_candidate() {
 	ExtBuilder::default().build().execute_with(|| {
 		// Voter
-		assert_ok!(register_voter(RuntimeOrigin::signed(ALICE)));
-		assert_eq!(voter_account(ALICE).unwrap(), VoterInfo::new());
+		assert_ok!(TemplateModule::register_voter(RuntimeOrigin::signed(ALICE)));
+		assert_eq!(TemplateModule::voter_account(ALICE).unwrap(), VoterInfo::new());
 
 		// Candidate
 		// assert_ok!(TemplateModule::register_candidate(RuntimeOrigin::signed(BOB)));
