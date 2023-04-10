@@ -1,6 +1,8 @@
 use crate as pallet_template;
-use frame_support::pallet_prelude::DispatchResult;
-use frame_support::traits::{ConstU16, ConstU64};
+use frame_support::{
+	pallet_prelude::DispatchResult,
+	traits::{ConstU16, ConstU64},
+};
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
@@ -114,8 +116,20 @@ pub fn register_voter(who: Origin) -> DispatchResult {
 	TemplateModule::register_voter(who)
 }
 
+pub fn register_voters(arr: &[AccountId]) {
+	for id in 0..arr.len() {
+		register_voter(who(arr.get(id).unwrap().clone()));
+	}
+}
+
 pub fn register_candidate(who: Origin) -> DispatchResult {
 	TemplateModule::register_candidate(who)
+}
+
+pub fn register_candidates(arr: &[AccountId]) {
+	for id in 0..arr.len() {
+		register_candidate(who(arr.get(id).unwrap().clone()));
+	}
 }
 
 pub fn give_vote(from: Origin, to: AccountId) -> DispatchResult {

@@ -1,8 +1,4 @@
-#![allow(unused_imports)]
-use crate::{
-	mock::*, AccountToVoterInfo, CandidateInfo, Config, ElectionConfig, ElectionInfo, Error, Event,
-	VoterInfo,
-};
+use crate::{mock::*, CandidateInfo, ElectionInfo, Error, Event, VoterInfo};
 use frame_support::{assert_noop, assert_ok};
 // use crate as pallet_template;
 
@@ -49,7 +45,6 @@ fn test_election_configured() {
 	})
 }
 
-
 #[test]
 fn test_voter_giving_vote_to_candidate_during_election() {
 	ExtBuilder::default().build().execute_with(|| {
@@ -88,16 +83,8 @@ fn test_voter_giving_vote_to_candidate_after_election() {
 #[test]
 fn test_decided_winner_after_election_ended() {
 	ExtBuilder::default().build().execute_with(|| {
-		register_voter(who(ALICE));
-		register_voter(who(BOB));
-		register_voter(who(DAVE));
-		register_voter(who(JOHN));
-		register_voter(who(RON));
-
-		register_candidate(who(DAVE));
-		register_candidate(who(RON));
-		register_candidate(who(JOHN));
-
+		register_voters(&[ALICE,BOB,DAVE,JOHN,RON]);
+		register_candidates(&[DAVE,JOHN,RON]);
 		configure_election_start_and_end_time();
 
 		// -------------------------------- Voting -------------------------------
@@ -105,8 +92,10 @@ fn test_decided_winner_after_election_ended() {
 
 		give_vote(who(ALICE), DAVE);
 		give_vote(who(JOHN), DAVE);
+
 		give_vote(who(DAVE), RON);
 		give_vote(who(BOB), RON);
+
 		give_vote(who(RON), JOHN);
 
 		/* --------------------------------- Decide Winner --------------------------------- */
