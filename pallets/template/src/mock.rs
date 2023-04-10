@@ -1,21 +1,37 @@
 use crate as pallet_template;
+use frame_support::pallet_prelude::DispatchResult;
 use frame_support::traits::{ConstU16, ConstU64};
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 };
-
 // pub type AccountId = <Test as frame_system::Config>::AccountId;
 // pub type BlockNumber = <Test as frame_system::Config>::BlockNumber;
 pub type AccountId = u64;
 pub type BlockNumber = u64;
+type Origin = <Test as frame_system::Config>::RuntimeOrigin; // ! How to alias runtimeorigin?
+
+// type Origin = <Test as frame_system::trait>::Origin;
 
 pub const ALICE: AccountId = 1;
 pub const BOB: AccountId = 2;
 pub const DAVE: AccountId = 3;
-pub const RON: AccountId= 4;
-pub const JOHN: AccountId=5;
+pub const RON: AccountId = 4;
+pub const JOHN: AccountId = 5;
+
+pub fn root_user() -> Origin {
+	RuntimeOrigin::root()
+}
+pub fn who(who: AccountId) -> Origin {
+	RuntimeOrigin::signed(who)
+}
+
+pub const ELECTION_START_TIME: u64 = 5;
+pub const ELECTION_END_TIME: u64 = 25;
+pub const TIME_BEFORE_ELECTION: u64 = 2;
+pub const TIME_DURING_ELECTION: u64 = 10;
+pub const TIME_AFTER_ELECTION: u64 = 40;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
@@ -83,6 +99,40 @@ impl ExtBuilder {
 		t.into()
 	}
 }
+
+pub fn setup_for_one_voter_one_candidate_and_election_time() {
+	register_voter(who(ALICE));
+	register_candidate(who(BOB));
+	configure_election_start_and_end_time();
+}
+
+pub fn set_current_time(time: u64) {
+	System::set_block_number(time);
+}
+
+pub fn register_voter(who: Origin) -> DispatchResult {
+	TemplateModule::register_voter(who)
+}
+
+pub fn register_candidate(who: Origin) -> DispatchResult {
+	TemplateModule::register_candidate(who)
+}
+
+pub fn give_vote(from: Origin, to: AccountId) -> DispatchResult {
+	TemplateModule::give_vote(from, to)
+}
+
+pub fn configure_election_start_and_end_time() -> DispatchResult {
+	TemplateModule::config_election(root_user(), ELECTION_START_TIME, ELECTION_END_TIME)
+}
+
+pub fn who_won_elections() -> DispatchResult {
+	TemplateModule::winner(who(ALICE))
+}
+
+// pub fn account_info_of_voter(whose: AccountId)-> Option<>{
+
+// }
 
 // Both are Equivalent:
 // -ExtBuilder::default().build()
