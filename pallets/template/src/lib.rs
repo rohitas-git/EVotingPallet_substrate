@@ -1,5 +1,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
+mod benchmarking;
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
@@ -12,6 +13,7 @@ pub use self::pallet::*;
 pub mod pallet {
 	use super::*;
 
+	use crate::weights::WeightInfo;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
 
@@ -22,7 +24,14 @@ pub mod pallet {
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
+
+		type WeightInfo: WeightInfo;
 	}
+
+	// pub trait WeightInfo {
+	// 	fn add_voter() -> Weight;
+	// 	fn register_candidate() -> Weight;
+	// }
 
 	#[derive(Clone, Eq, PartialEq, Encode, Decode, MaxEncodedLen, RuntimeDebug, TypeInfo)]
 	#[scale_info(skip_type_params(T))]
@@ -134,6 +143,7 @@ pub mod pallet {
 		ElectionEnded,
 		ElectionNotEnded,
 		MaxCandidatesExceed,
+		ElectionTimeIllogical,
 	}
 
 	// Dispatchable functions allows users to interact with the pallet and invoke state changes.
@@ -145,7 +155,7 @@ pub mod pallet {
 		/// storage and emits an event. This function must be dispatched by a signed extrinsic.
 		#[pallet::call_index(0)]
 		// #[pallet::weight(10_000 + T::DbWeight::get().writes(1).ref_time())]
-		#[pallet::weight(0)]
+		#[weight = add_voter()]
 		pub fn register_voter(origin: OriginFor<T>) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
@@ -228,6 +238,7 @@ pub mod pallet {
 
 			let is_configured_election = ElectionConfig::<T>::exists();
 			ensure!(!is_configured_election, Error::<T>::AlreadyConfiguredElection);
+			ensure!(start < end, Error::<T>::ElectionTimeIllogical);
 
 			let election = ElectionInfo::<T>::set(start, end);
 

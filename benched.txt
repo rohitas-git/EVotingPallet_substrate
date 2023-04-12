@@ -1,0 +1,71 @@
+Pallet: "pallet_template", Extrinsic: "add_voter", Lowest values: [], Highest values: [], Steps: 2, Repeat: 2
+Raw Storage Info
+========
+Storage: TemplateModule AccountToVoterInfo (r:1 w:1)
+Proof: TemplateModule AccountToVoterInfo (max_values: None, max_size: Some(82), added: 2557, mode: MaxEncodedLen)
+
+-- Proof Sizes --
+
+6 bytes
+6 bytes
+
+Median Slopes Analysis
+========
+-- Extrinsic Time --
+
+Model:
+Time ~=    34.25
+              µs
+
+Reads = 1
+Writes = 1
+Recorded proof Size = 6
+
+Min Squares Analysis
+========
+-- Extrinsic Time --
+
+Model:
+Time ~=    34.25
+              µs
+
+Reads = 1
+Writes = 1
+Recorded proof Size = 6
+
+Pallet: "pallet_template", Extrinsic: "register_candidate", Lowest values: [], Highest values: [], Steps: 2, Repeat: 2
+Raw Storage Info
+========
+Storage: TemplateModule AccountToCandidateInfo (r:1 w:1)
+Proof: TemplateModule AccountToCandidateInfo (max_values: None, max_size: Some(52), added: 2527, mode: MaxEncodedLen)
+
+-- Proof Sizes --
+
+6 bytes
+6 bytes
+
+Median Slopes Analysis
+========
+-- Extrinsic Time --
+
+Model:
+Time ~=    40.26
+              µs
+
+Reads = 1
+Writes = 1
+Recorded proof Size = 6
+
+Min Squares Analysis
+========
+-- Extrinsic Time --
+
+Model:
+Time ~=    40.26
+              µs
+
+Reads = 1
+Writes = 1
+Recorded proof Size = 6
+
+Created file: "pallets/transfer-weight.rs"

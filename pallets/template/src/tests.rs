@@ -3,11 +3,9 @@ use frame_support::{assert_noop, assert_ok};
 // use crate as pallet_template;
 
 // ! Funda: give when then
-// ! Wrap it with fn set_election_time
-// ! Remove code duplication
-// ! Better Naming (Descriptive names also work)
+
 // ! Split code into meaningful files
-// ! Replace number with meaningful const/variable
+
 
 #[test]
 fn test_register_voter() {
@@ -34,7 +32,7 @@ fn test_register_candidate() {
 }
 
 #[test]
-fn test_election_configured() {
+fn test_configuring_election() {
 	ExtBuilder::default().build().execute_with(|| {
 		set_current_time(TIME_DURING_ELECTION);
 
@@ -83,8 +81,8 @@ fn test_voter_giving_vote_to_candidate_after_election() {
 #[test]
 fn test_decided_winner_after_election_ended() {
 	ExtBuilder::default().build().execute_with(|| {
-		register_voters(&[ALICE,BOB,DAVE,JOHN,RON]);
-		register_candidates(&[DAVE,JOHN,RON]);
+		register_voters(&[ALICE, BOB, DAVE, JOHN, RON]);
+		register_candidates(&[DAVE, JOHN, RON]);
 		configure_election_start_and_end_time();
 
 		// -------------------------------- Voting -------------------------------
@@ -102,10 +100,10 @@ fn test_decided_winner_after_election_ended() {
 		set_current_time(TIME_AFTER_ELECTION);
 
 		// println!("Max Votes: {}",TemplateModule::max_votes());
-		// println!("Winner Vec: {:?}", TemplateModule::max_votes_candidate().clone().unwrap_or_default());
+		// println!("Winner Vec: {:?}",
+		// TemplateModule::max_votes_candidate().clone().unwrap_or_default());
 
-		use frame_support::pallet_prelude::ConstU32;
-		use frame_support::BoundedVec;
+		use frame_support::{pallet_prelude::ConstU32, BoundedVec};
 		let win: BoundedVec<<Test as frame_system::Config>::AccountId, ConstU32<100>> =
 			vec![DAVE, RON].try_into().unwrap();
 
