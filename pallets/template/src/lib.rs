@@ -6,6 +6,9 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
+mod weights;
+
+use crate::weights::WeightInfo;
 // use frame_support::BoundedVec;
 pub use self::pallet::*;
 
@@ -13,7 +16,7 @@ pub use self::pallet::*;
 pub mod pallet {
 	use super::*;
 
-	use crate::weights::WeightInfo;
+	use crate::WeightInfo;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
 
@@ -155,7 +158,7 @@ pub mod pallet {
 		/// storage and emits an event. This function must be dispatched by a signed extrinsic.
 		#[pallet::call_index(0)]
 		// #[pallet::weight(10_000 + T::DbWeight::get().writes(1).ref_time())]
-		#[weight = add_voter()]
+		#[pallet::weight(0)]
 		pub fn register_voter(origin: OriginFor<T>) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
@@ -172,7 +175,7 @@ pub mod pallet {
 		/// An example dispatchable that may throw a custom error.
 		#[pallet::call_index(1)]
 		// #[pallet::weight(10_000 + T::DbWeight::get().reads_writes(1,1).ref_time())]
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::add_voter())]
 		pub fn register_candidate(origin: OriginFor<T>) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
