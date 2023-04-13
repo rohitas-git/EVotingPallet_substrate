@@ -1,4 +1,4 @@
-use crate::{self as pallet_template, weights::SubstrateWeight};
+use crate::{self as pallet_template, weights::TemplateWeightInfo};
 use frame_support::{
 	pallet_prelude::DispatchResult,
 	traits::{ConstU16, ConstU64},
@@ -78,7 +78,7 @@ impl frame_system::Config for Test {
 
 impl pallet_template::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = SubstrateWeight<Test>;
+	type WeightInfo = TemplateWeightInfo<Test>;
 }
 
 // Build genesis storage according to the mock runtime.

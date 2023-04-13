@@ -6,10 +6,18 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
-mod weights;
-use crate::weights::WeightInfo;
 // use frame_support::BoundedVec;
 pub use self::pallet::*;
+
+mod weights;
+pub use weights::TemplateWeightInfo;
+use frame_support::pallet_prelude::Weight;
+pub trait WeightInfo {
+	fn add_voter() -> Weight;
+	fn register_candidate() -> Weight;
+	fn config_election() -> Weight;
+	fn give_vote() -> Weight;
+}
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -20,19 +28,14 @@ pub mod pallet {
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
 
-	/// Configure the pallet by specifying the parameters and types on which it depends.
+	/* --------------------------------- Config --------------------------------- */
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 
 		type WeightInfo: WeightInfo;
 	}
-
-	// pub trait WeightInfo {
-	// 	fn add_voter() -> Weight;
-	// 	fn register_candidate() -> Weight;
-	// }
-
+	/* --------------------------------- Custom --------------------------------- */
 	#[derive(Clone, Eq, PartialEq, Encode, Decode, MaxEncodedLen, RuntimeDebug, TypeInfo)]
 	#[scale_info(skip_type_params(T))]
 	pub struct VoterInfo<T: Config> {
@@ -136,7 +139,7 @@ pub mod pallet {
 		// Winner for the election have been stored in a storage
 		WinnerVecStored,
 	}
-	
+
 	/* ---------------------------------- Error --------------------------------- */
 	#[pallet::error]
 	pub enum Error<T> {
@@ -162,9 +165,7 @@ pub mod pallet {
 		ElectionTimeIllogical,
 	}
 
-	// Dispatchable functions allows users to interact with the pallet and invoke state changes.
-	// These functions materialize as "extrinsics", which are often compared to transactions.
-	// Dispatchable functions must be annotated with a weight and must return a DispatchResult.
+	/* ---------------------------------- Extrinsics ---------------------------------- */
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		/// An example dispatchable that takes a singles value as a parameter, writes the value to
@@ -172,6 +173,7 @@ pub mod pallet {
 		#[pallet::call_index(0)]
 		// #[pallet::weight(10_000 + T::DbWeight::get().writes(1).ref_time())]
 		#[pallet::weight(T::WeightInfo::add_voter())]
+		// #[pallet::weight(0)]
 		pub fn register_voter(origin: OriginFor<T>) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
@@ -189,6 +191,7 @@ pub mod pallet {
 		#[pallet::call_index(1)]
 		// #[pallet::weight(10_000 + T::DbWeight::get().reads_writes(1,1).ref_time())]
 		#[pallet::weight(T::WeightInfo::register_candidate())]
+		// #[pallet::weight(0)]
 		pub fn register_candidate(origin: OriginFor<T>) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
@@ -203,7 +206,30 @@ pub mod pallet {
 		}
 
 		#[pallet::call_index(2)]
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::config_election())]
+		// #[pallet::weight(0)]
+		pub fn config_election(
+			origin: OriginFor<T>,
+			start: T::BlockNumber,
+			end: T::BlockNumber,
+		) -> DispatchResult {
+			ensure_root(origin)?;
+
+			let is_configured_election = ElectionConfig::<T>::exists();
+			ensure!(!is_configured_election, Error::<T>::AlreadyConfiguredElection);
+			ensure!(start < end, Error::<T>::ElectionTimeIllogical);
+
+			let election = ElectionInfo::<T>::set(start, end);
+
+			ElectionConfig::<T>::put(&election);
+
+			Self::deposit_event(Event::ElectionConfigured);
+			Ok(())
+		}
+
+		#[pallet::call_index(3)]
+		#[pallet::weight(T::WeightInfo::give_vote())]
+		// #[pallet::weight(0)]
 		pub fn give_vote(origin: OriginFor<T>, to_vote_for: T::AccountId) -> DispatchResult {
 			let voter_account = ensure_signed(origin)?;
 
@@ -240,27 +266,6 @@ pub mod pallet {
 			}
 
 			Self::deposit_event(Event::VoteSuccess);
-			Ok(())
-		}
-
-		#[pallet::call_index(3)]
-		#[pallet::weight(0)]
-		pub fn config_election(
-			origin: OriginFor<T>,
-			start: T::BlockNumber,
-			end: T::BlockNumber,
-		) -> DispatchResult {
-			ensure_root(origin)?;
-
-			let is_configured_election = ElectionConfig::<T>::exists();
-			ensure!(!is_configured_election, Error::<T>::AlreadyConfiguredElection);
-			ensure!(start < end, Error::<T>::ElectionTimeIllogical);
-
-			let election = ElectionInfo::<T>::set(start, end);
-
-			ElectionConfig::<T>::put(&election);
-
-			Self::deposit_event(Event::ElectionConfigured);
 			Ok(())
 		}
 

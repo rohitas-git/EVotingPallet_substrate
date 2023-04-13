@@ -42,7 +42,7 @@ cargo build --release --features runtime-benchmarks
 ./target/production/node-template benchmark pallet --list
 
 # To execute all benchmarks for the runtime
-./target/production/node-template benchmark pallet \
+./target/release/node-template benchmark pallet \
     --chain dev \
     --execution=wasm \
     --wasm-execution=compiled \
@@ -50,7 +50,7 @@ cargo build --release --features runtime-benchmarks
     --extrinsic "*" \
     --steps 50 \
     --repeat 20 \
-    --output pallets/all-weight.rs 
+    --output pallets/weights.rs 
 
 ## Benchmark a specific functions in a pallet
 ./target/production/node-template benchmark pallet \
