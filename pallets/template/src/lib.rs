@@ -7,7 +7,6 @@ mod mock;
 mod tests;
 
 mod weights;
-
 use crate::weights::WeightInfo;
 // use frame_support::BoundedVec;
 pub use self::pallet::*;
@@ -15,8 +14,6 @@ pub use self::pallet::*;
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
-
-	use crate::WeightInfo;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
 
@@ -96,6 +93,8 @@ pub mod pallet {
 		}
 	}
 
+	/* --------------------------------- storage -------------------------------- */
+
 	#[pallet::storage]
 	#[pallet::getter(fn voter_account)]
 	pub type AccountToVoterInfo<T: Config> =
@@ -110,10 +109,6 @@ pub mod pallet {
 	#[pallet::getter(fn get_election)]
 	pub type ElectionConfig<T: Config> = StorageValue<_, ElectionInfo<T>, OptionQuery>;
 
-	// #[pallet::storage]
-	// #[pallet::getter(fn candidate_list)]
-	// pub type CandidateList<T: Config> = StorageValue<_, MyCandidateList, ValueQuery>;
-
 	#[pallet::storage]
 	#[pallet::getter(fn max_votes_candidate)]
 	pub type MaxVoteCandidate<T: Config> =
@@ -123,29 +118,47 @@ pub mod pallet {
 	#[pallet::getter(fn max_votes)]
 	pub type MaxVote<T: Config> = StorageValue<_, u32, ValueQuery>;
 
+	/* ---------------------------------- Event --------------------------------- */
+
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
+		// A Voter has registered
 		RegisterVoter,
+		// A Candidate has registered
 		RegisterCandidate,
+		// Voter has voted successfully
 		VoteSuccess,
+		// Get the Current Vote Count of a Candidate
 		RecieveVoteCount,
+		// Election timings has been configured
 		ElectionConfigured,
+		// Winner for the election have been stored in a storage
 		WinnerVecStored,
 	}
-
-	// Errors inform users that something went wrong.
+	
+	/* ---------------------------------- Error --------------------------------- */
 	#[pallet::error]
 	pub enum Error<T> {
+		// AccountId already registered as Voter
 		AlreadyVoted,
+		// AccountId already registered as Candidate
 		AlreadyRegistered,
+		// Election timings are already set
 		AlreadyConfiguredElection,
+		// AccountId is not registered as Voter or Candidate
 		NotRegistered,
+		// Election timing is not set
 		ElectionNotConfigured,
+		// Election has not yet started
 		ElectionNotStarted,
+		// Election has ended
 		ElectionEnded,
+		// Election has not ended
 		ElectionNotEnded,
+		// Candidates exceed the maximum capacity
 		MaxCandidatesExceed,
+		// When Election start time > end time
 		ElectionTimeIllogical,
 	}
 
@@ -158,7 +171,7 @@ pub mod pallet {
 		/// storage and emits an event. This function must be dispatched by a signed extrinsic.
 		#[pallet::call_index(0)]
 		// #[pallet::weight(10_000 + T::DbWeight::get().writes(1).ref_time())]
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::add_voter())]
 		pub fn register_voter(origin: OriginFor<T>) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
@@ -175,7 +188,7 @@ pub mod pallet {
 		/// An example dispatchable that may throw a custom error.
 		#[pallet::call_index(1)]
 		// #[pallet::weight(10_000 + T::DbWeight::get().reads_writes(1,1).ref_time())]
-		#[pallet::weight(T::WeightInfo::add_voter())]
+		#[pallet::weight(T::WeightInfo::register_candidate())]
 		pub fn register_candidate(origin: OriginFor<T>) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 

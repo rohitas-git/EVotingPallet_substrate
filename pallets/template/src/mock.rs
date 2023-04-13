@@ -1,4 +1,4 @@
-use crate as pallet_template;
+use crate::{self as pallet_template, weights::SubstrateWeight};
 use frame_support::{
 	pallet_prelude::DispatchResult,
 	traits::{ConstU16, ConstU64},
@@ -8,11 +8,10 @@ use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 };
-// pub type AccountId = <Test as frame_system::Config>::AccountId;
-// pub type BlockNumber = <Test as frame_system::Config>::BlockNumber;
+
 pub type AccountId = u64;
 pub type BlockNumber = u64;
-type Origin = <Test as frame_system::Config>::RuntimeOrigin; // ! How to alias runtimeorigin?
+type Origin = <Test as frame_system::Config>::RuntimeOrigin;
 
 // type Origin = <Test as frame_system::trait>::Origin;
 
@@ -79,6 +78,7 @@ impl frame_system::Config for Test {
 
 impl pallet_template::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = SubstrateWeight<Test>;
 }
 
 // Build genesis storage according to the mock runtime.

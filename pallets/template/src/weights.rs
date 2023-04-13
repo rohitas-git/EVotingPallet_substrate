@@ -36,6 +36,8 @@ use sp_std::marker::PhantomData;
 pub trait WeightInfo {
     fn add_voter() -> Weight;
     fn register_candidate() -> Weight;
+	fn config_election()-> Weight;
+	fn give_vote()-> Weight;
 }
 
 /// Weight functions for `pallet_template`.
