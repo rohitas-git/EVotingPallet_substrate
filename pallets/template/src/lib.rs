@@ -10,13 +10,14 @@ mod tests;
 pub use self::pallet::*;
 
 mod weights;
-pub use weights::TemplateWeightInfo;
 use frame_support::pallet_prelude::Weight;
+pub use weights::TemplateWeightInfo;
 pub trait WeightInfo {
 	fn add_voter() -> Weight;
 	fn register_candidate() -> Weight;
 	fn config_election() -> Weight;
 	fn give_vote() -> Weight;
+	fn winner() -> Weight;
 }
 
 #[frame_support::pallet]
@@ -168,10 +169,7 @@ pub mod pallet {
 	/* ---------------------------------- Extrinsics ---------------------------------- */
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		/// An example dispatchable that takes a singles value as a parameter, writes the value to
-		/// storage and emits an event. This function must be dispatched by a signed extrinsic.
 		#[pallet::call_index(0)]
-		// #[pallet::weight(10_000 + T::DbWeight::get().writes(1).ref_time())]
 		#[pallet::weight(T::WeightInfo::add_voter())]
 		// #[pallet::weight(0)]
 		pub fn register_voter(origin: OriginFor<T>) -> DispatchResult {
@@ -187,9 +185,7 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// An example dispatchable that may throw a custom error.
 		#[pallet::call_index(1)]
-		// #[pallet::weight(10_000 + T::DbWeight::get().reads_writes(1,1).ref_time())]
 		#[pallet::weight(T::WeightInfo::register_candidate())]
 		// #[pallet::weight(0)]
 		pub fn register_candidate(origin: OriginFor<T>) -> DispatchResult {
@@ -270,7 +266,8 @@ pub mod pallet {
 		}
 
 		#[pallet::call_index(4)]
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::winner())]
+		// #[pallet::weight(0)]
 		pub fn winner(_origin: OriginFor<T>) -> DispatchResult {
 			//Election was configured and has ended
 			let block_number = <frame_system::Pallet<T>>::block_number();
@@ -279,7 +276,6 @@ pub mod pallet {
 			ensure!(block_number >= election.end_block.unwrap(), Error::<T>::ElectionNotEnded);
 
 			// Candidates
-			// use frame_support::pallet_prelude::bounded_vec;
 			let mut winner_num = 0;
 			let mut winner_vec: BoundedVec<T::AccountId, ConstU32<100>> = Default::default();
 			for key in AccountToCandidateInfo::<T>::iter_keys() {

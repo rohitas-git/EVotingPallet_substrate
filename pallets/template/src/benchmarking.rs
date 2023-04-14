@@ -66,11 +66,9 @@ mod benchmarks {
 			RawOrigin::Signed(candidate.clone()).into();
 		let root_origin: <T as frame_system::Config>::RuntimeOrigin = RawOrigin::Root.into();
 
-		#[allow(unused_must_use)]
+
 		Pallet::<T>::register_voter(voter_origin.clone());
-		#[allow(unused_must_use)]
 		Pallet::<T>::register_candidate(candidate_origin.clone());
-		#[allow(unused_must_use)]
 		Pallet::<T>::config_election(root_origin.clone(), start.into(), end.into());
 
 		frame_system::Pallet::<T>::set_block_number(start.into());
@@ -84,6 +82,63 @@ mod benchmarks {
 		// self::assert_eq!(Pallet::<T>::candidate_account(candidate).unwrap(), voted_candidate);
 		// self::assert_eq!(Pallet::<T>::voter_account(voter).unwrap(), voted_voter);
 		assert_last_event::<T>(Event::VoteSuccess.into());
+	}
+
+	#[benchmark]
+	fn winner() {
+		let root_origin: <T as frame_system::Config>::RuntimeOrigin = RawOrigin::Root.into();
+		let (start, end, inbetween, after_end): (u32, u32, u32, u32) = (2, 10, 7, 15);
+
+		Pallet::<T>::config_election(root_origin.clone(), start.into(), end.into());
+		frame_system::Pallet::<T>::set_block_number(start.into());
+
+		let num_candidates =100;
+		let num_voter=1000;
+
+		let mut candidates_list: Vec<T::AccountId > = vec![];
+		for i in 0..num_candidates{
+			let candidate: T::AccountId = account("Candidate", 1u32, i as u32);
+			let candidate_origin: <T as frame_system::Config>::RuntimeOrigin= RawOrigin::Signed(candidate.clone()).into();
+
+			candidates_list.push(candidate.clone());
+			Pallet::<T>::register_candidate(candidate_origin.clone());
+		}
+
+		let mut voter_origin_list: Vec< <T as frame_system::Config>::RuntimeOrigin > = vec![];
+		for i in 0..num_voter{
+			let voter: T::AccountId = account("Voter", 1u32, i as u32);
+			let voter_origin: <T as frame_system::Config>::RuntimeOrigin= RawOrigin::Signed(voter.clone()).into();
+
+			voter_origin_list.push(voter_origin.clone());
+			Pallet::<T>::register_voter(voter_origin.clone());
+		}
+
+		frame_system::Pallet::<T>::set_block_number(inbetween.into());
+
+		let outer_id= voter_origin_list.len() / candidates_list.len(); // 10
+		let inner_id: usize = 100;
+		for i in 1..=outer_id{
+			let start= inner_id*(i-1);
+			let end= inner_id*(i); 
+
+			for voter_index in start..end{
+				let candidate_index= voter_index - start;
+				let voter_origin = voter_origin_list.get(voter_index).unwrap().clone();
+				let candidate = candidates_list.get(candidate_index).unwrap().clone();
+				Pallet::<T>::give_vote(voter_origin, candidate );
+			}
+		}
+
+		frame_system::Pallet::<T>::set_block_number(after_end.into());
+		let caller: T::AccountId = account("Alice", 1u32, 2u32);
+		let caller: <T as frame_system::Config>::RuntimeOrigin= RawOrigin::Signed(caller.clone()).into();
+		
+		#[block]
+		{	
+			Pallet::<T>::winner(caller.clone());
+		}
+
+		assert_last_event::<T>(Event::WinnerVecStored.into());
 	}
 }
 
